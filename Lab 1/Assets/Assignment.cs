@@ -223,7 +223,11 @@ static public class AssignmentPart1
 //  This will enable the needed UI/function calls for your to proceed with your assignment.
 static public class AssignmentConfiguration
 {
-    public const int PartOfAssignmentThatIsInDevelopment = 1;
+    //part 1
+    //public const int PartOfAssignmentThatIsInDevelopment = 1;
+
+    //part 2
+    public const int PartOfAssignmentThatIsInDevelopment = 2;
 }
 
 /*
@@ -259,26 +263,44 @@ Good luck, journey well.
 
 */
 
+//okay so starting off i need to make a list of things i need
+//ability to save new party names
+//ability to get the list of party names and read it back
+
+
 static public class AssignmentPart2
 {
-
     static List<string> listOfPartyNames;
+    const string filePath = "C:\\Users\\pawfu\\Desktop\\Multiplayer Systems\\testing.txt";
 
     static public void GameStart()
     {
         listOfPartyNames = new List<string>();
-        listOfPartyNames.Add("sample 1");
-        listOfPartyNames.Add("sample 2");
-        listOfPartyNames.Add("sample 3");
 
+        //so double checking the file path is real lol
+        if (File.Exists(filePath))
+        {
+            //init the stream reader
+            //load the saved party names from the txt
+            using (StreamReader sr = new StreamReader(filePath))
+            {
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    listOfPartyNames.Add(line);
+                }
+            }
+        }
         GameContent.RefreshUI();
     }
 
+    //getter for the list
     static public List<string> GetListOfPartyNames()
     {
         return listOfPartyNames;
     }
 
+    //so we will use this to load what was saved
     static public void LoadPartyDropDownChanged(string selectedName)
     {
         GameContent.RefreshUI();
@@ -286,12 +308,74 @@ static public class AssignmentPart2
 
     static public void SavePartyButtonPressed()
     {
+        //so first when we save we want to save to a new party name
+        //so we make a new party by accessing the array
+        //this is what gives us the ability to type and write the PN
+        string partyName = GameContent.GetPartyNameFromInput();
+         
+        //next make sure there is a party name
+        //tell the user it cant be empty
+        if(string.IsNullOrEmpty(partyName)) 
+        {
+            Debug.Log("Party name cannot be empty!");
+            return;
+        }
+
+        //make sure the PN is different from the others
+        if(!listOfPartyNames.Contains(partyName))
+        {
+            listOfPartyNames.Add(partyName);
+            //save the updated list of PN to the file
+            SavePartyName();
+        }
+        using (StreamWriter sw = new StreamWriter(filePath))
+        {
+            foreach(PartyCharacter pc in GameContent.partyCharacters)
+            {
+                //make it write the line
+                sw.WriteLine(pc.classID + "," +
+                    pc.health + "," +
+                    pc.mana + "," +
+                    pc.strength + "," +
+                    pc.agility + "," +
+                    pc.wisdom);
+
+                //if the equipment count is above 0 AKA there is equipment
+                if (pc.equipment.Count > 0)
+                {
+                    //join each line of it together in a row using string.Join
+                    sw.WriteLine(string.Join(", ", pc.equipment));
+                }
+                else
+                {
+                    //if there is none say no
+                    sw.WriteLine("no equipment");
+                }
+                //adds an extrs line to seperate the two
+                sw.WriteLine("....");
+            }
+        }
+
+        Debug.Log($"Party '{partyName}' saved to {filePath}");
         GameContent.RefreshUI();
     }
 
     static public void DeletePartyButtonPressed()
     {
         GameContent.RefreshUI();
+    }
+
+    //going to create a func that will save the party names
+    //no mumbo jumbo goin on here
+    static public void SavePartyName()
+    {
+        using (StreamWriter sw = new StreamWriter(filePath))
+        {
+            foreach (string partyName in listOfPartyNames)
+            {
+                sw.WriteLine(partyName);
+            }
+        }
     }
 
 }

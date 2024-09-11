@@ -219,7 +219,10 @@ public class SystemManager : MonoBehaviour
 
     public string GetPartyNameFromInput()
     {
-
+        //gets the array of the text components that are children of paryname blah blah
+        //the [1] index is used to access the second text component in this array
+        //and it then returns the text property of that text component which is a string containing 
+        //the text i need
         return partyNameInputField.GetComponentsInChildren<Text>()[1].text;
 
     }
