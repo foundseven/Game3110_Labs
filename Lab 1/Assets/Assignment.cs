@@ -284,20 +284,24 @@ static public class AssignmentPart2
     //create a list of party names
     static List<string> listOfPartyNames;
     //connect it the file path
-    const string filePath = "C:\\Users\\pawfu\\Desktop\\Multiplayer Systems\\testing.txt";
+    //const string filePath = "C:\\Users\\pawfu\\Desktop\\Multiplayer Systems\\testing.txt";
 
+    //i think i need a new one
+    const string filePath = "index.txt";
+
+    //start game
     static public void GameStart()
     {
         //init new LL to store the saved party names
         nameAndIndices = new LinkedList<NameAndIndex>();
 
         //so double checking the file path is real lol
-        if (File.Exists(filePath))
+        if (File.Exists(Application.dataPath + +Path.DirectorySeparatorChar + filePath))
         {
             //init the stream reader
             //read file
             //load the saved party names from the txt
-            using (StreamReader sr = new StreamReader(filePath))
+            using (StreamReader sr = new StreamReader(Application.dataPath + Path.DirectorySeparatorChar + filePath))
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
@@ -358,7 +362,7 @@ static public class AssignmentPart2
         //so we make a new party by accessing the array
         //this is what gives us the ability to type and write the PN
         string partyName = GameContent.GetPartyNameFromInput();
-         
+        bool isNewName = true;
         //next make sure there is a party name
         //tell the user it cant be empty
         if(string.IsNullOrEmpty(partyName)) 
@@ -368,41 +372,36 @@ static public class AssignmentPart2
         }
 
         //make sure the PN is different from the others
-        if(!listOfPartyNames.Contains(partyName))
-        {
-            listOfPartyNames.Add(partyName);
-            //save the updated list of PN to the file
-            SavePartyName();
-        }
-        using (StreamWriter sw = new StreamWriter(filePath))
-        {
-            foreach(PartyCharacter pc in GameContent.partyCharacters)
-            {
-                //make it write the line
-                sw.WriteLine(pc.classID + "," +
-                    pc.health + "," +
-                    pc.mana + "," +
-                    pc.strength + "," +
-                    pc.agility + "," +
-                    pc.wisdom);
+        //if(!listOfPartyNames.Contains(partyName))
+        //{
+        //    listOfPartyNames.Add(partyName);
+        //    //save the updated list of PN to the file
+        //    SavePartyName();
+        //}
 
-                //if the equipment count is above 0 AKA there is equipment
-                if (pc.equipment.Count > 0)
-                {
-                    //join each line of it together in a row using string.Join
-                    sw.WriteLine(string.Join(", ", pc.equipment));
-                }
-                else
-                {
-                    //if there is none say no
-                    sw.WriteLine("no equipment");
-                }
-                //adds an extrs line to seperate the two
-                sw.WriteLine("....");
+        //go through a loop of all the name and index
+        foreach (NameAndIndex nameAndIndex in nameAndIndices)
+        {
+            if (nameAndIndex.name == partyName)
+            {
+                SavePartyName(Application.dataPath + Path.DirectorySeparatorChar + nameAndIndex.index + ".txt");
+                //now we need to make sure that we are making sure you cant save the same name
+                isNewName = false;
             }
         }
-
-        Debug.Log($"Party '{partyName}' saved to {filePath}");
+        //now if it is a new name
+        if(isNewName) 
+        {
+            //add up one in the last index used
+            ++lastIndexUsed;
+            //save the party
+            SavePartyName(filePath + Path.DirectorySeparatorChar + lastIndexUsed + ".txt");
+            //add the new name and indx
+            nameAndIndices.AddLast(new NameAndIndex(lastIndexUsed, partyName));
+            //and add to the list of party names
+            listOfPartyNames.Add(partyName);
+        }
+        Debug.Log($"Party '{partyName}' saved to {filePath} with index of {lastIndexUsed}");
         GameContent.RefreshUI();
     }
 
@@ -461,15 +460,47 @@ static public class AssignmentPart2
 
     //going to create a func that will save the party names
     //no mumbo jumbo goin on here
-    static public void SavePartyName()
+    static public void SavePartyName(string fileName)
     {
-        using (StreamWriter sw = new StreamWriter(filePath))
+        //so instead we want to call on a linked list and save the line to that
+        LinkedList<string> partyData = SavePartyDataString();
+
+        using (StreamWriter sw = new StreamWriter(fileName))
         {
             foreach (string partyName in listOfPartyNames)
             {
                 sw.WriteLine(partyName);
             }
+            sw.Close();
         }
+        
+    }
+
+    //gnna make a function that holds the saving of the data
+    //but this will be a linked list
+    static private LinkedList<string> SavePartyDataString()
+    {
+        LinkedList<string> data = new LinkedList<string>();
+
+        foreach (PartyCharacter pc in GameContent.partyCharacters)
+        {
+            //Debug.Log("PC class id == " + pc.classID);
+            //make it write the line
+            data.AddLast(PCSaveDataIdentifier + "," +
+                pc.classID + "," +
+                pc.health + "," +
+                pc.mana + "," +
+                pc.strength + "," +
+                pc.agility + "," +
+                pc.wisdom);
+
+            //now do the same with the equipment
+            foreach (int Equipment in pc.equipment)
+            {
+                data.AddLast(PCEquipmentSaveDataIndentifier + "," + Equipment);
+            }
+        }
+        return data;
     }
 
 }
