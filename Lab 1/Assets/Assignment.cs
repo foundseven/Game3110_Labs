@@ -224,10 +224,10 @@ static public class AssignmentPart1
 static public class AssignmentConfiguration
 {
     //part 1
-    public const int PartOfAssignmentThatIsInDevelopment = 1;
+    //public const int PartOfAssignmentThatIsInDevelopment = 1;
 
     //part 2
-    //public const int PartOfAssignmentThatIsInDevelopment = 2;
+    public const int PartOfAssignmentThatIsInDevelopment = 2;
 }
 
 /*
