@@ -423,7 +423,57 @@ static public class AssignmentPart2
 
     static public void DeletePartyButtonPressed()
     {
-        GameContent.RefreshUI();
+        //getting a bool to flag true and false
+        bool isDeleting = false;
+
+        string partyNameToDelete = GameContent.GetPartyNameFromInput();
+
+        //debugging
+        if (string.IsNullOrEmpty(partyNameToDelete))
+        {
+            Debug.Log("Need a party in order to delete!");
+            return;
+        }
+        else
+        {
+            Debug.Log("Look at you! You can delete this!");
+        }
+
+        NameAndIndex partyIndexToDelete = null;
+        //looping through everything
+        foreach(NameAndIndex nameAndIndex in nameAndIndices)
+        {
+            //if the party name we want to delete is the same as the name we r looking for
+            if(nameAndIndex.name == partyNameToDelete) 
+            {
+                StreamWriter sw = new StreamWriter(Application.dataPath + Path.DirectorySeparatorChar + nameAndIndex.name + ".txt");
+                sw.Dispose();
+
+                //make the party to delete the name and index
+                partyIndexToDelete = nameAndIndex;
+                isDeleting = true;
+                break;
+            }
+        }
+        if(isDeleting)
+        {
+            //remove the nameAndIndices and list of party name
+            nameAndIndices.Remove(partyIndexToDelete);
+            listOfPartyNames.Remove(partyNameToDelete);
+
+            Debug.Log("Deleted file");
+
+
+            //refresh UI
+            GameContent.RefreshUI();
+
+            //call save index file to update the IF
+            SaveIndexFile();
+        }
+        else
+        {
+            Debug.Log($"Party '{partyNameToDelete}' not found.");
+        }
     }
 
     //okay so i want to make a list of my saves that i can go through by using a data "key" if you will
