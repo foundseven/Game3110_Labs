@@ -406,6 +406,7 @@ static public class AssignmentPart2
         {
             //add up one in the last index used
             lastIndexUsed++;
+            Debug.Log($"index is now {lastIndexUsed}");
             //save the party
             SavePartyName(Application.dataPath + Path.DirectorySeparatorChar + lastIndexUsed + ".txt");
             //add the new name and indx
@@ -434,8 +435,15 @@ static public class AssignmentPart2
         //go through and check
         foreach (string line in data)
         {
+            Debug.Log($"Processing line: {line}"); // Log the line being processed
             string[] charParse = line.Split(',');
-            
+
+            if (charParse.Length < 7)
+            {
+                Debug.LogWarning($"Not enough data elements in line: {line}");
+                continue; // Skip this line
+            }
+
             int identifier = int.Parse(charParse[0]);
 
             //add something to check to see if the indentifier matches the character data
@@ -521,7 +529,7 @@ static public class AssignmentPart2
 
         using (StreamWriter sw = new StreamWriter(fileName))
         {
-            foreach (string partyName in listOfPartyNames)
+            foreach (string partyName in partyData)
             {
                 sw.WriteLine(partyName);
             }
