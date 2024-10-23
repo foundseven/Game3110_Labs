@@ -287,7 +287,7 @@ static public class AssignmentPart2
     //const string filePath = "C:\\Users\\pawfu\\Desktop\\Multiplayer Systems\\testing.txt";
 
     //i think i need a new one
-    const string filePath = "index.txt";
+    const string filePath = "SavedData/testing.txt";
 
     //start game
     static public void GameStart()
@@ -395,7 +395,7 @@ static public class AssignmentPart2
             //add up one in the last index used
             ++lastIndexUsed;
             //save the party
-            SavePartyName(filePath + Path.DirectorySeparatorChar + lastIndexUsed + ".txt");
+            SavePartyName(Application.dataPath + Path.DirectorySeparatorChar + lastIndexUsed + ".txt");
             //add the new name and indx
             nameAndIndices.AddLast(new NameAndIndex(lastIndexUsed, partyName));
             //and add to the list of party names
@@ -403,6 +403,28 @@ static public class AssignmentPart2
         }
         Debug.Log($"Party '{partyName}' saved to {filePath} with index of {lastIndexUsed}");
         GameContent.RefreshUI();
+
+        //call save index here
+        SaveIndexFile();
+    }
+
+    //i need to save the index file as well
+    public static void SaveIndexFile()
+    {
+        //so we are writing to the new path
+        //so first get the path
+        StreamWriter sw = new StreamWriter(Application.dataPath + Path.DirectorySeparatorChar + filePath);
+
+        //writing the line
+        sw.WriteLine(LastIndexIdentifier + "," + lastIndexUsed);
+
+        //loop to add
+        //so go through the class and write a new line
+        foreach (NameAndIndex nameAndIndex in nameAndIndices)
+        {
+            sw.WriteLine(IndexAndNameIdentifier + "," + nameAndIndex.index + "," + nameAndIndex.name);
+        }
+        sw.Close();
     }
 
     static public void DeletePartyButtonPressed()
