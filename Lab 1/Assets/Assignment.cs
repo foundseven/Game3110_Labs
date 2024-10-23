@@ -279,7 +279,7 @@ static public class AssignmentPart2
 
     //use my new class yippie
     static LinkedList<NameAndIndex> nameAndIndices;
-    //
+    
     static int lastIndexUsed;
     //create a list of party names
     static List<string> listOfPartyNames;
@@ -288,6 +288,8 @@ static public class AssignmentPart2
 
     //i think i need a new one
     const string filePath = "SavedData/testing.txt";
+
+    static private NameAndIndex currentLoadedParty;
 
     //start game
     static public void GameStart()
@@ -365,6 +367,8 @@ static public class AssignmentPart2
             {
                 //change it to the index we need
                 indexWeNeed = nameAndIndex.index;
+                currentLoadedParty = nameAndIndex;
+                break;
             }
         }
         //after we find it, if it is a valid number
@@ -423,13 +427,10 @@ static public class AssignmentPart2
 
     static public void DeletePartyButtonPressed()
     {
-        //getting a bool to flag true and false
-        bool isDeleting = false;
-
-        string partyNameToDelete = GameContent.GetPartyNameFromInput();
+        NameAndIndex partyNameToDelete = GetCurrentLoadedParty();
 
         //debugging
-        if (string.IsNullOrEmpty(partyNameToDelete))
+        if (partyNameToDelete == null)
         {
             Debug.Log("Need a party in order to delete!");
             return;
@@ -439,41 +440,37 @@ static public class AssignmentPart2
             Debug.Log("Look at you! You can delete this!");
         }
 
-        NameAndIndex partyIndexToDelete = null;
-        //looping through everything
-        foreach(NameAndIndex nameAndIndex in nameAndIndices)
+        string fileToDelete = Application.dataPath + Path.DirectorySeparatorChar + partyNameToDelete.index + ".txt";
+
+        //make sure it exists
+        if (File.Exists(fileToDelete))
         {
-            //if the party name we want to delete is the same as the name we r looking for
-            if(nameAndIndex.name == partyNameToDelete) 
-            {
-                StreamWriter sw = new StreamWriter(Application.dataPath + Path.DirectorySeparatorChar + nameAndIndex.name + ".txt");
-                sw.Dispose();
-
-                //make the party to delete the name and index
-                partyIndexToDelete = nameAndIndex;
-                isDeleting = true;
-                break;
-            }
+            // delete the party data file
+            File.Delete(fileToDelete);
+            //tell us we deleted it
+            Debug.Log($"Deleted party file: {fileToDelete}");
         }
-        if(isDeleting)
-        {
-            //remove the nameAndIndices and list of party name
-            nameAndIndices.Remove(partyIndexToDelete);
-            listOfPartyNames.Remove(partyNameToDelete);
 
-            Debug.Log("Deleted file");
+        // Remove the party from the nameAndIndices list and the UI
+        nameAndIndices.Remove(partyNameToDelete);
+        listOfPartyNames.Remove(partyNameToDelete.name);
 
+        // Refresh the UI
+        GameContent.RefreshUI();
 
-            //refresh UI
-            GameContent.RefreshUI();
+        // Save the updated index file
+        SaveIndexFile();
 
-            //call save index file to update the IF
-            SaveIndexFile();
-        }
-        else
-        {
-            Debug.Log($"Party '{partyNameToDelete}' not found.");
-        }
+        Debug.Log($"Party '{partyNameToDelete.name}' deleted successfully.");
+
+        // Reset the current loaded party
+        currentLoadedParty = null;
+    }
+
+    //making a function that calls on the current loaded party
+    static public NameAndIndex GetCurrentLoadedParty()
+    {
+        return currentLoadedParty;
     }
 
     //okay so i want to make a list of my saves that i can go through by using a data "key" if you will
