@@ -80,10 +80,10 @@ static public class AssignmentPart1
     {
         //get the directory
         //but instead we are going to make a string that hard puts it in
-        string filePath = "C:\\Users\\pawfu\\Desktop\\Multiplayer Systems\\testing.txt";
+        string filePath = "SavedData/testing.txt";
         //string filePath = " D:\\School\\Multiplayer Systems\\Game3110_Labs\\Lab 1";
         //write each directory name to a file
-        using (StreamWriter sw = new StreamWriter(filePath))
+        using (StreamWriter sw = new StreamWriter(Application.dataPath + Path.DirectorySeparatorChar + filePath))
         {
             //impliment this
             foreach (PartyCharacter pc in GameContent.partyCharacters)
@@ -119,7 +119,7 @@ static public class AssignmentPart1
     static public void LoadPartyButtonPressed()
     {
         //first we find the file path
-        string filePath = "C:\\Users\\pawfu\\Desktop\\Multiplayer Systems\\testing.txt";
+        string filePath = "SavedData/testing.txt";
 
         //ok so we want to make it so when this button is pressed it loads whatever was saved
         //so this clears whats on the screen first
@@ -130,7 +130,7 @@ static public class AssignmentPart1
             // The using statement also closes the StreamReader.
 
             //using Encoding.UTF8 to ensure that non-ASCII characters are properly read
-            using (StreamReader sr = new StreamReader(filePath, Encoding.UTF8))
+            using (StreamReader sr = new StreamReader(Application.dataPath +Path.DirectorySeparatorChar + filePath, Encoding.UTF8))
             {
                 string line;
                 PartyCharacter pc = null;
@@ -224,10 +224,10 @@ static public class AssignmentPart1
 static public class AssignmentConfiguration
 {
     //part 1
-    //public const int PartOfAssignmentThatIsInDevelopment = 1;
+    public const int PartOfAssignmentThatIsInDevelopment = 1;
 
     //part 2
-    public const int PartOfAssignmentThatIsInDevelopment = 2;
+    //public const int PartOfAssignmentThatIsInDevelopment = 2;
 }
 
 /*
