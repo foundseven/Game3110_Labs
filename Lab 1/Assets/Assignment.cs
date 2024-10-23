@@ -270,27 +270,71 @@ Good luck, journey well.
 
 static public class AssignmentPart2
 {
+    //need data indentifiers for both PC and equip
+    const int PCSaveDataIdentifier = 0;
+    const int PCEquipmentSaveDataIndentifier = 1;
+
+    const int LastIndexIdentifier = 1;
+    const int IndexAndNameIdentifier = 2;
+
+    //use my new class yippie
+    static LinkedList<NameAndIndex> nameAndIndices;
+    //
+    static int lastIndexUsed;
+    //create a list of party names
     static List<string> listOfPartyNames;
+    //connect it the file path
     const string filePath = "C:\\Users\\pawfu\\Desktop\\Multiplayer Systems\\testing.txt";
 
     static public void GameStart()
     {
-        listOfPartyNames = new List<string>();
+        //init new LL to store the saved party names
+        nameAndIndices = new LinkedList<NameAndIndex>();
 
         //so double checking the file path is real lol
         if (File.Exists(filePath))
         {
             //init the stream reader
+            //read file
             //load the saved party names from the txt
             using (StreamReader sr = new StreamReader(filePath))
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    listOfPartyNames.Add(line);
+                    //so change this 
+                    //listOfPartyNames.Add(line);
+
+                    //process each line from the file
+                    string[] charParse = line.Split(',');
+                    int identifier = int.Parse(charParse[0]);
+
+                    //handle diff types of data
+                    //so if it matches this, load the last used index
+                    if (identifier == LastIndexIdentifier)
+                    {
+                        lastIndexUsed = int.Parse(charParse[1]);
+                    }
+                    //if it matches this, the line contains a party name AND its index
+                    else if(identifier == IndexAndNameIdentifier)
+                    {
+                        //second val is index, 3rd is party name
+                        nameAndIndices.AddLast(new NameAndIndex(int.Parse(charParse[1]), charParse[2]));
+                    }
+
                 }
             }
         }
+        //create a list of party names for UI
+        listOfPartyNames = new List<string>();
+
+        //it loops through anf the party name is added to the list
+        foreach (NameAndIndex nameAndIndex in nameAndIndices)
+        {
+            listOfPartyNames.Add(nameAndIndex.name);
+        }
+
+        //refresh UI
         GameContent.RefreshUI();
     }
 
@@ -303,6 +347,8 @@ static public class AssignmentPart2
     //so we will use this to load what was saved
     static public void LoadPartyDropDownChanged(string selectedName)
     {
+        GameContent.partyCharacters.Clear();
+
         GameContent.RefreshUI();
     }
 
@@ -365,6 +411,54 @@ static public class AssignmentPart2
         GameContent.RefreshUI();
     }
 
+    //okay so i want to make a list of my saves that i can go through by using a data "key" if you will
+    static public void LoadParty(LinkedList<string> data)
+    {
+        GameContent.partyCharacters.Clear();
+
+        PartyCharacter pc = null;
+
+        //go through and check
+        foreach (string line in data)
+        {
+            string[] charParse = line.Split(',');
+            
+            int identifier = int.Parse(charParse[0]);
+
+            //add something to check to see if the indentifier matches the character data
+            if(identifier == PCSaveDataIdentifier)
+            {
+                pc = new PartyCharacter(
+               int.Parse(charParse[1]), // classID
+               int.Parse(charParse[2]), // health
+               int.Parse(charParse[3]), // mana
+               int.Parse(charParse[4]), // strength
+               int.Parse(charParse[5]), // agility
+               int.Parse(charParse[6])  // wisdom
+               );
+
+                GameContent.partyCharacters.AddLast(pc);
+            }
+            //now do the same but with the equipment identifier
+            else if(identifier == PCEquipmentSaveDataIndentifier) 
+            {
+                //make sure there is even a pc there
+                if (pc != null)
+                {
+                    // add the equip
+                    pc.equipment.AddLast(int.Parse(charParse[1]));
+                }
+                else
+                {
+                    Debug.LogWarning("No character found.");
+                }
+            }
+        }
+
+        GameContent.RefreshUI();
+        Debug.Log("Party loaded successfully.");
+    }
+
     //going to create a func that will save the party names
     //no mumbo jumbo goin on here
     static public void SavePartyName()
@@ -378,6 +472,21 @@ static public class AssignmentPart2
         }
     }
 
+}
+
+//gnna make a new class that holds Name and Index
+//that way i can store the party string name and the int index
+public class NameAndIndex
+{
+    public string name;
+    public int index;
+
+    //construct
+    public NameAndIndex(int Index, string Name)
+    {
+        name = Name;
+        index = Index;
+    }
 }
 
 #endregion
