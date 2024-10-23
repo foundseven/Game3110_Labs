@@ -353,7 +353,27 @@ static public class AssignmentPart2
     {
         GameContent.partyCharacters.Clear();
 
-        GameContent.RefreshUI();
+        //get the index we need
+        //starts off by saying that there is no valid index yet
+        int indexWeNeed = -1;
+
+        //go through everything
+        foreach(NameAndIndex nameAndIndex in nameAndIndices)
+        {
+            //if the name we are looking for matches the selected name
+            if(nameAndIndex.name == selectedName)
+            {
+                //change it to the index we need
+                indexWeNeed = nameAndIndex.index;
+            }
+        }
+        //after we find it, if it is a valid number
+        if (indexWeNeed != -1)
+        {
+            //read the party data
+            ReadPartyData(indexWeNeed);
+        }
+        
     }
 
     static public void SavePartyButtonPressed()
@@ -371,14 +391,6 @@ static public class AssignmentPart2
             return;
         }
 
-        //make sure the PN is different from the others
-        //if(!listOfPartyNames.Contains(partyName))
-        //{
-        //    listOfPartyNames.Add(partyName);
-        //    //save the updated list of PN to the file
-        //    SavePartyName();
-        //}
-
         //go through a loop of all the name and index
         foreach (NameAndIndex nameAndIndex in nameAndIndices)
         {
@@ -393,7 +405,7 @@ static public class AssignmentPart2
         if(isNewName) 
         {
             //add up one in the last index used
-            ++lastIndexUsed;
+            lastIndexUsed++;
             //save the party
             SavePartyName(Application.dataPath + Path.DirectorySeparatorChar + lastIndexUsed + ".txt");
             //add the new name and indx
@@ -406,6 +418,79 @@ static public class AssignmentPart2
 
         //call save index here
         SaveIndexFile();
+    }
+
+    static public void DeletePartyButtonPressed()
+    {
+        GameContent.RefreshUI();
+    }
+
+    //okay so i want to make a list of my saves that i can go through by using a data "key" if you will
+    static public void LoadPC(LinkedList<string> data)
+    {
+        GameContent.partyCharacters.Clear();
+        PartyCharacter pc = null;
+
+        //go through and check
+        foreach (string line in data)
+        {
+            string[] charParse = line.Split(',');
+            
+            int identifier = int.Parse(charParse[0]);
+
+            //add something to check to see if the indentifier matches the character data
+            if(identifier == PCSaveDataIdentifier)
+            {
+               pc = new PartyCharacter(
+               int.Parse(charParse[1]), // classID
+               int.Parse(charParse[2]), // health
+               int.Parse(charParse[3]), // mana
+               int.Parse(charParse[4]), // strength
+               int.Parse(charParse[5]), // agility
+               int.Parse(charParse[6])  // wisdom
+               );
+
+                GameContent.partyCharacters.AddLast(pc);
+            }
+            //now do the same but with the equipment identifier
+            else if(identifier == PCEquipmentSaveDataIndentifier) 
+            {
+                //make sure there is even a pc there
+                if (pc != null)
+                {
+                    // add the equip
+                    //pc.equipment.AddLast(int.Parse(charParse[1]));
+                    GameContent.partyCharacters.Last.Value.equipment.AddLast(int.Parse(charParse[1]));
+                }
+                else
+                {
+                    Debug.LogWarning("No character found.");
+                }
+            }
+        }
+
+        GameContent.RefreshUI();
+        Debug.Log("Party loaded successfully.");
+    }
+
+    //now i want to be able to read the party data
+    static private void ReadPartyData(int dataToLoad)
+    {
+        //new SR
+        StreamReader sr = new StreamReader(Application.dataPath + Path.DirectorySeparatorChar + dataToLoad + ".txt");
+
+        LinkedList<string> partyData = new LinkedList<string>();
+        string line;
+
+        //while there r lines read them all
+        while ((line = sr.ReadLine()) != null)
+        {
+            //find the line we r looking for
+            partyData.AddLast(line);
+        }
+        sr.Close();
+        //load it
+        LoadPC(partyData);
     }
 
     //i need to save the index file as well
@@ -425,59 +510,6 @@ static public class AssignmentPart2
             sw.WriteLine(IndexAndNameIdentifier + "," + nameAndIndex.index + "," + nameAndIndex.name);
         }
         sw.Close();
-    }
-
-    static public void DeletePartyButtonPressed()
-    {
-        GameContent.RefreshUI();
-    }
-
-    //okay so i want to make a list of my saves that i can go through by using a data "key" if you will
-    static public void LoadParty(LinkedList<string> data)
-    {
-        GameContent.partyCharacters.Clear();
-
-        PartyCharacter pc = null;
-
-        //go through and check
-        foreach (string line in data)
-        {
-            string[] charParse = line.Split(',');
-            
-            int identifier = int.Parse(charParse[0]);
-
-            //add something to check to see if the indentifier matches the character data
-            if(identifier == PCSaveDataIdentifier)
-            {
-                pc = new PartyCharacter(
-               int.Parse(charParse[1]), // classID
-               int.Parse(charParse[2]), // health
-               int.Parse(charParse[3]), // mana
-               int.Parse(charParse[4]), // strength
-               int.Parse(charParse[5]), // agility
-               int.Parse(charParse[6])  // wisdom
-               );
-
-                GameContent.partyCharacters.AddLast(pc);
-            }
-            //now do the same but with the equipment identifier
-            else if(identifier == PCEquipmentSaveDataIndentifier) 
-            {
-                //make sure there is even a pc there
-                if (pc != null)
-                {
-                    // add the equip
-                    pc.equipment.AddLast(int.Parse(charParse[1]));
-                }
-                else
-                {
-                    Debug.LogWarning("No character found.");
-                }
-            }
-        }
-
-        GameContent.RefreshUI();
-        Debug.Log("Party loaded successfully.");
     }
 
     //going to create a func that will save the party names
