@@ -124,19 +124,19 @@ public class NetworkServer : MonoBehaviour
                         ProcessReceivedMsg(msg);
                         buffer.Dispose();
 
-                        if (msg.StartsWith((char)ClientServerSignifiers.Login))
-                        {
-                            // Extract username and password from message
-                            string[] msgParts = msg.Split(',');
-                            if (msgParts.Length == 3)
-                            {
-                                string username = msgParts[1];
-                                string password = msgParts[2];
-
-                                // Handle the login logic
-                                HandleLogin(username, password, networkConnections[i]);
-                            }
-                        }
+                        //if (msg.StartsWith((char)ClientServerSignifiers.Login))
+                        //{
+                        //    // Extract username and password from message
+                        //    string[] msgParts = msg.Split(',');
+                        //    if (msgParts.Length == 3)
+                        //    {
+                        //        string username = msgParts[1];
+                        //        string password = msgParts[2];
+                        //        Debug.Log("Testing");
+                        //        // Handle the login logic
+                        //        HandleLogin(username, password, networkConnections[i]);
+                        //    }
+                        //}
 
                         break;
                     case NetworkEvent.Type.Disconnect:
@@ -234,6 +234,15 @@ public class NetworkServer : MonoBehaviour
                 }
             }
         }
+        else if (identifier == ClientServerSignifiers.Login)
+        {
+            // Handle login logic
+            HandleLogin(userName, password);
+        }
+        else
+        {
+            Debug.LogError("Unknown identifier: " + identifier);
+        }
     }
 
     public void SendMessageToClient(string msg, NetworkConnection networkConnection)
@@ -289,17 +298,45 @@ public class NetworkServer : MonoBehaviour
         return false;
     }
 
-    public void HandleLogin(string username, string password, NetworkConnection conn)
+    private void HandleLogin(string userName, string password)
     {
-        bool loginSuccessful = CheckCredentials(username, password);  // Check credentials in your database or list
+        bool loginSuccess = false;
 
-        if (loginSuccessful)
+        // Check if the user exists and the password is correct
+        foreach (Account a in savedAccounts)
         {
-            SendMessageToClient("LoginSuccess", conn);
+            if (userName == a.username && password == a.password)
+            {
+                loginSuccess = true;
+                break;
+            }
+        }
+
+        if (loginSuccess)
+        {
+            // If login is successful, send a success message to the client
+            foreach (NetworkConnection connection in networkConnections)
+            {
+                if (connection.IsCreated)
+                {
+                    //SendMessageToClient(ServerClientSignifiers.LoginComplete + ", LoginSuccess", connection);
+                    SendMessageToClient("LoginSuccess", connection);
+                    Debug.Log("Login successful for " + userName);
+                }
+            }
         }
         else
         {
-            SendMessageToClient("LoginFailed", conn);
+            // If login fails, send a failure message to the client
+            foreach (NetworkConnection connection in networkConnections)
+            {
+                if (connection.IsCreated)
+                {
+                    //SendMessageToClient(ServerClientSignifiers.LoginFailed + ", LoginFailed", connection);
+                    SendMessageToClient("LoginFailed", connection);
+                    Debug.Log("Login failed for " + userName);
+                }
+            }
         }
     }
 
@@ -340,4 +377,10 @@ public class Account
         this.password = password;
     }
 
+}
+
+public enum GameState
+{
+    Login,
+    InGame,
 }

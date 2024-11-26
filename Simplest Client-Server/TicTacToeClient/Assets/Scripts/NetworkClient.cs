@@ -4,6 +4,12 @@ using Unity.Collections;
 using Unity.Networking.Transport;
 using System.Text;
 
+public enum GameState
+{
+    Login,
+    InGame,
+}
+
 public class NetworkClient : MonoBehaviour
 {
     NetworkDriver networkDriver;
@@ -12,9 +18,12 @@ public class NetworkClient : MonoBehaviour
     NetworkPipeline nonReliableNotInOrderedPipeline;
     const ushort NetworkPort = 9001;
     const string IPAddress = /*"192.168.2.20"*/"192.168.2.21";
+    private GameStateManager gameStateManager;
 
     void Start()
     {
+        gameStateManager = FindObjectOfType<GameStateManager>();
+
         networkDriver = NetworkDriver.Create();
         reliableAndInOrderPipeline = networkDriver.CreatePipeline(typeof(FragmentationPipelineStage), typeof(ReliableSequencedPipelineStage));
         nonReliableNotInOrderedPipeline = networkDriver.CreatePipeline(typeof(FragmentationPipelineStage));
@@ -100,6 +109,15 @@ public class NetworkClient : MonoBehaviour
     private void ProcessReceivedMsg(string msg)
     {
         Debug.Log("Msg received = " + msg);
+
+        if (msg == "LoginSuccess")
+        {
+            gameStateManager.OnServerMessageReceived("LoginSuccess");
+        }
+        else if (msg == "LoginFailed")
+        {
+            gameStateManager.OnServerMessageReceived("LoginFailed");
+        }
     }
 
     public void SendMessageToServer(string msg)
@@ -115,7 +133,6 @@ public class NetworkClient : MonoBehaviour
 
         buffer.Dispose();
     }
-
 }
 
 #region Signifiers
