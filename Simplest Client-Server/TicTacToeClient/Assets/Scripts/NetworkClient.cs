@@ -106,6 +106,13 @@ public class NetworkClient : MonoBehaviour
         return true;
     }
 
+    public void RequestGameRoom(string roomName)
+    {
+        string message = "CreateOrJoinRoom," + roomName; // Format the message to send
+        SendMessageToServer(message);
+    }
+
+
     private void ProcessReceivedMsg(string msg)
     {
         Debug.Log("Msg received = " + msg);
@@ -117,6 +124,21 @@ public class NetworkClient : MonoBehaviour
         else if (msg == "LoginFailed")
         {
             gameStateManager.OnServerMessageReceived("LoginFailed");
+        }
+        else if (msg == "RoomCreated")
+        {
+            Debug.Log("Room created successfully");
+            FindObjectOfType<GameRoomUI>().OnRoomCreated();
+        }
+        else if (msg == "RoomJoined")
+        {
+            Debug.Log("Joined an existing room");
+            FindObjectOfType<GameRoomUI>().OnOpponentJoined();
+        }
+        else if (msg == "RoomFull")
+        {
+            Debug.Log("Room is full. Please try another room");
+            FindObjectOfType<GameRoomUI>().OnRoomFull();
         }
     }
 
@@ -133,6 +155,7 @@ public class NetworkClient : MonoBehaviour
 
         buffer.Dispose();
     }
+
 }
 
 #region Signifiers
