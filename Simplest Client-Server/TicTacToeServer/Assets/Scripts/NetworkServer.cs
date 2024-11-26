@@ -1,8 +1,10 @@
 using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.Assertions;
 using Unity.Collections;
 using Unity.Networking.Transport;
 using System.Text;
+using System.IO;
 
 public class NetworkServer : MonoBehaviour
 {
@@ -15,6 +17,10 @@ public class NetworkServer : MonoBehaviour
     const ushort NetworkPort = /*50931*/9001;
 
     const int MaxNumberOfClientConnections = 1000;
+
+    //similar to SDL
+    List<Account> savedAccounts;
+    string filePath;
 
     void Start()
     {
@@ -33,6 +39,14 @@ public class NetworkServer : MonoBehaviour
 
 
         networkConnections = new NativeList<NetworkConnection>(MaxNumberOfClientConnections, Allocator.Persistent);
+
+        //setting up the save path
+        savedAccounts = new List<Account>();
+        filePath = Application.dataPath + Path.DirectorySeparatorChar + "savedAccountData.txt";
+        if(File.Exists(filePath))
+        {
+            Debug.Log("File found!");
+        }
     }
 
     void OnDestroy()
@@ -158,6 +172,67 @@ public class NetworkServer : MonoBehaviour
         networkDriver.EndSend(streamWriter);
 
         buffer.Dispose();
+    }
+
+    //create a save new user 
+    private void SaveNewUser(Account newAccount)
+    {
+        //add new account
+        savedAccounts.Add(newAccount);
+
+        StreamWriter sw = new StreamWriter(filePath, true);
+        sw.WriteLine(newAccount.username + "," + newAccount.password);
+
+        sw.Close();
+    }
+
+    private void LoadOldUser()
+    {
+        string line = "";
+
+        StreamReader sr = new StreamReader(filePath);
+        while ((line = sr.ReadLine()) != null)
+        {
+            string[] charParse = line.Split(',');
+            savedAccounts.Add(new Account(charParse[0], charParse[1]));
+        }
+    }
+
+}
+
+#region Signifiers
+
+public static class ClientServerSignifiers
+{
+    public const int CreateAccount = 1;
+    public const int Login = 2;
+}
+
+public static class ServerClientSignifiers
+{
+    public const int LoginComplete = 1;
+    public const int LoginFailed = 2;
+
+    public const int AccountCreated = 3;
+    public const int AccountCreationFailed = 4;
+}
+
+#endregion
+
+//similar to my sending data 
+public class Account
+{
+    #region Variables
+
+    public string username;
+    public string password;
+
+    #endregion
+
+    public Account(string username, string password)
+    {
+        this.username = username;
+        this.password = password;
     }
 
 }
