@@ -48,6 +48,10 @@ public class NetworkClient : MonoBehaviour
             Debug.Log("Client is unable to connect to server");
             return;
         }
+        //else
+        //{
+        //    Debug.Log("Client connected to server");
+        //}
 
         #endregion
 

@@ -12,7 +12,7 @@ public class NetworkServer : MonoBehaviour
     NetworkPipeline reliableAndInOrderPipeline;
     NetworkPipeline nonReliableNotInOrderedPipeline;
 
-    const ushort NetworkPort = 9001;
+    const ushort NetworkPort = /*50931*/9001;
 
     const int MaxNumberOfClientConnections = 1000;
 
@@ -29,6 +29,8 @@ public class NetworkServer : MonoBehaviour
             Debug.Log("Failed to bind to port " + NetworkPort);
         else
             networkDriver.Listen();
+        Debug.Log("Successfully was able to bind to port " + NetworkPort);
+
 
         networkConnections = new NativeList<NetworkConnection>(MaxNumberOfClientConnections, Allocator.Persistent);
     }
