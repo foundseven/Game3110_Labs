@@ -84,4 +84,20 @@ public class Login : MonoBehaviour
             feedbackText.text = "Log in to your account.";
         }
     }
+
+    public void HandleLoginResponse(string response)
+    {
+        if(response == "LoginFailed")
+        {
+            feedbackText.text = "Incorrect username or password.";
+        }
+        else if (response == "LoginSuccess")
+        {
+            feedbackText.text = "Login successful!";
+        }
+        else
+        {
+            feedbackText.text = "Unexpected response from server.";
+        }
+    }
 }

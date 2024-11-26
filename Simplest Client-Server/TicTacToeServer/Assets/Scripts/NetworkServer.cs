@@ -5,6 +5,8 @@ using Unity.Collections;
 using Unity.Networking.Transport;
 using System.Text;
 using System.IO;
+using UnityEditor.MemoryProfiler;
+using Unity.VisualScripting;
 
 public class NetworkServer : MonoBehaviour
 {
@@ -121,6 +123,21 @@ public class NetworkServer : MonoBehaviour
                         string msg = Encoding.Unicode.GetString(byteBuffer);
                         ProcessReceivedMsg(msg);
                         buffer.Dispose();
+
+                        if (msg.StartsWith((char)ClientServerSignifiers.Login))
+                        {
+                            // Extract username and password from message
+                            string[] msgParts = msg.Split(',');
+                            if (msgParts.Length == 3)
+                            {
+                                string username = msgParts[1];
+                                string password = msgParts[2];
+
+                                // Handle the login logic
+                                HandleLogin(username, password, networkConnections[i]);
+                            }
+                        }
+
                         break;
                     case NetworkEvent.Type.Disconnect:
                         Debug.Log("Client has disconnected from server");
@@ -152,9 +169,71 @@ public class NetworkServer : MonoBehaviour
         return true;
     }
 
+    //this need to get reworked
     private void ProcessReceivedMsg(string msg)
     {
         Debug.Log("Msg received = " + msg);
+
+        //process each line from the file
+        string[] charParse = msg.Split(',');
+        //int identifier = int.Parse(charParse[0]);
+        Debug.Log("Parsed parts: " + string.Join(", ", charParse));
+
+        if (charParse.Length < 3)
+        {
+            Debug.LogError("Invalid message format. Expected at least 3 parts.");
+            return;
+        }
+
+        // Try parsing the identifier
+        int identifier;
+        if (!int.TryParse(charParse[0], out identifier))
+        {
+            Debug.LogError("Failed to parse identifier: " + charParse[0]);
+            return;
+        }
+
+        string userName = charParse[1];
+        string password = charParse[2];
+
+        //so now i need to see if they are creating an account or not
+        if(identifier == ClientServerSignifiers.CreateAccount)
+        {
+            bool checkIsUsed = false;
+            //iterate through all the accounts to check
+            foreach(Account a in savedAccounts)
+            {
+                //if the username matches with one thats already existing
+                if(userName == a.username)
+                {
+                    checkIsUsed = true;
+                }
+            }
+
+            if(checkIsUsed)
+            {
+                foreach (NetworkConnection connection in networkConnections)
+                {
+                    if (connection.IsCreated)
+                    {
+                        SendMessageToClient(ServerClientSignifiers.AccountCreationFailed + ", username is already in use!", connection);
+                        Debug.Log("Failed to create!");
+                    }
+                }
+            }
+            else
+            {
+                foreach (NetworkConnection connection in networkConnections)
+                {
+                    if (connection.IsCreated)
+                    {
+                        SaveNewUser(new Account(userName, password));
+                        SendMessageToClient(ServerClientSignifiers.AccountCreated + ", the new account has been created", connection);
+                        Debug.Log("New user created!");
+                    }
+                }
+            }
+        }
     }
 
     public void SendMessageToClient(string msg, NetworkConnection networkConnection)
@@ -195,6 +274,32 @@ public class NetworkServer : MonoBehaviour
         {
             string[] charParse = line.Split(',');
             savedAccounts.Add(new Account(charParse[0], charParse[1]));
+        }
+    }
+
+    public bool CheckCredentials(string username, string password)
+    {
+        foreach (var account in savedAccounts)
+        {
+            if (account.username == username && account.password == password)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void HandleLogin(string username, string password, NetworkConnection conn)
+    {
+        bool loginSuccessful = CheckCredentials(username, password);  // Check credentials in your database or list
+
+        if (loginSuccessful)
+        {
+            SendMessageToClient("LoginSuccess", conn);
+        }
+        else
+        {
+            SendMessageToClient("LoginFailed", conn);
         }
     }
 

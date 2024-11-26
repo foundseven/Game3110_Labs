@@ -118,8 +118,19 @@ public class NetworkClient : MonoBehaviour
 
 }
 
+#region Signifiers
 public static class ClientServerSignifiers
 {
     public const int CreateAccount = 1;
     public const int Login = 2;
 }
+
+public static class ServerClientSignifiers
+{
+    public const int LoginComplete = 1;
+    public const int LoginFailed = 2;
+
+    public const int AccountCreated = 3;
+    public const int AccountCreationFailed = 4;
+}
+#endregion
