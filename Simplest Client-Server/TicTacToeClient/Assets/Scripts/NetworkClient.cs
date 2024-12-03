@@ -117,13 +117,58 @@ public class NetworkClient : MonoBehaviour
     {
         Debug.Log("Msg received = " + msg);
 
-        if (msg == "LoginSuccess")
+        //if (msg == "LoginSuccess")
+        //{
+        //    gameStateManager.OnServerMessageReceived("LoginSuccess");
+        //}
+        //else if (msg == "LoginFailed")
+        //{
+        //    gameStateManager.OnServerMessageReceived("LoginFailed");
+        //}
+        //else if (msg == "RoomCreated")
+        //{
+        //    Debug.Log("Room created successfully");
+        //    FindObjectOfType<GameRoomUI>().OnRoomCreated();
+        //}
+        //else if (msg == "RoomJoined")
+        //{
+        //    Debug.Log("Joined an existing room");
+        //    FindObjectOfType<GameRoomUI>().OnOpponentJoined();
+        //}
+        //else if (msg == "RoomFull")
+        //{
+        //    Debug.Log("Room is full. Please try another room");
+        //    FindObjectOfType<GameRoomUI>().OnRoomFull();
+        //}
+
+        string[] parts = msg.Split(':');
+
+        // Check the first part for the message type
+        if (parts[0] == "LoginSuccess")
         {
             gameStateManager.OnServerMessageReceived("LoginSuccess");
         }
-        else if (msg == "LoginFailed")
+        else if (parts[0] == "LoginFailed")
         {
-            gameStateManager.OnServerMessageReceived("LoginFailed");
+            Debug.Log("lOGIN FAILED!");
+            if (parts.Length > 1) // Check for specific failure reasons
+            {
+                if (parts[1] == "WrongPassword")
+                {
+                    Debug.Log("Login failed: Incorrect password");
+                    FindObjectOfType<Login>().feedbackText.text = "Incorrect password. Please try again.";
+                }
+                else if (parts[1] == "UserNotFound")
+                {
+                    Debug.Log("Login failed: Username not found");
+                    FindObjectOfType<Login>().feedbackText.text = "Username not found. Please create an account.";
+                }
+            }
+            else
+            {
+                Debug.Log("Login failed: General error");
+                FindObjectOfType<Login>().feedbackText.text = "Login failed. Please try again.";
+            }
         }
         else if (msg == "RoomCreated")
         {
@@ -139,6 +184,10 @@ public class NetworkClient : MonoBehaviour
         {
             Debug.Log("Room is full. Please try another room");
             FindObjectOfType<GameRoomUI>().OnRoomFull();
+        }
+        else
+        {
+            Debug.LogWarning("Unknown message received: " + msg);
         }
     }
 

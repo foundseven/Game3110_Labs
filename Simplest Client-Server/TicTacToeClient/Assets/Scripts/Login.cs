@@ -64,6 +64,7 @@ public class Login : MonoBehaviour
             feedbackText.text = "Logging in.";
         }
 
+
         ConnectionToHost.GetComponent<NetworkClient>().SendMessageToServer(msg);
     }
 
