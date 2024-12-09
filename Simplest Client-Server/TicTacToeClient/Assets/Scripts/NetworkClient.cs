@@ -118,39 +118,21 @@ public class NetworkClient : MonoBehaviour
     {
         Debug.Log("Msg received = " + msg);
 
-        //if (msg == "LoginSuccess")
-        //{
-        //    gameStateManager.OnServerMessageReceived("LoginSuccess");
-        //}
-        //else if (msg == "LoginFailed")
-        //{
-        //    gameStateManager.OnServerMessageReceived("LoginFailed");
-        //}
-        //else if (msg == "RoomCreated")
-        //{
-        //    Debug.Log("Room created successfully");
-        //    FindObjectOfType<GameRoomUI>().OnRoomCreated();
-        //}
-        //else if (msg == "RoomJoined")
-        //{
-        //    Debug.Log("Joined an existing room");
-        //    FindObjectOfType<GameRoomUI>().OnOpponentJoined();
-        //}
-        //else if (msg == "RoomFull")
-        //{
-        //    Debug.Log("Room is full. Please try another room");
-        //    FindObjectOfType<GameRoomUI>().OnRoomFull();
-        //}
-
         //give string parts a variable
-        string[] parts = msg.Split(':');
+        string[] parts = msg.Split(',');
 
-        // Check the first part for the message type
-        if (parts[0] == "LoginSuccess")
+        int identifier;
+        if (!int.TryParse(parts[0], out identifier))
+        {
+            Debug.LogError("Failed to parse identifier: " + parts[0]);
+            return;
+        }
+
+        if (identifier == ServerClientSignifiers.LoginComplete)
         {
             gameStateManager.OnServerMessageReceived("LoginSuccess");
         }
-        else if (parts[0] == "LoginFailed")
+        else if (identifier == ServerClientSignifiers.LoginFailed)
         {
             Debug.Log("lOGIN FAILED!");
             if (parts.Length > 1) // Check for specific failure reasons
@@ -172,21 +154,16 @@ public class NetworkClient : MonoBehaviour
                 FindObjectOfType<Login>().feedbackText.text = "Login failed. Please try again.";
             }
         }
-        else if (msg == "RoomCreated")
-        {
-            Debug.Log("Room created successfully");
-            FindObjectOfType<GameRoomUI>().OnRoomCreated();
-        }
-        else if (msg == "RoomJoined")
+        else if (identifier == ServerClientSignifiers.StartGame)
         {
             Debug.Log("Joined an existing room");
             FindObjectOfType<GameRoomUI>().OnOpponentJoined();
         }
-        else if (msg == "RoomFull")
-        {
-            Debug.Log("Room is full. Please try another room");
-            FindObjectOfType<GameRoomUI>().OnRoomFull();
-        }
+        //else if (msg == "RoomFull")
+        //{
+        //    Debug.Log("Room is full. Please try another room");
+        //    FindObjectOfType<GameRoomUI>().OnRoomFull();
+        //}
         else
         {
             Debug.LogWarning("Unknown message received: " + msg);
@@ -215,7 +192,7 @@ public static class ClientServerSignifiers
     public const int CreateAccount = 1;
     public const int Login = 2;
 
-    public const int JoinGameRoomQueue = 3;
+    public const int JoinQueue = 3;
 
 }
 
@@ -226,5 +203,8 @@ public static class ServerClientSignifiers
 
     public const int AccountCreated = 3;
     public const int AccountCreationFailed = 4;
+
+    public const int StartGame = 5;
+
 }
 #endregion

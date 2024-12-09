@@ -194,16 +194,6 @@ public class NetworkServer : MonoBehaviour
 
         string roomName = charParse[1];  // The room name requested
 
-        // Handle "JoinOrCreateRoom"
-        if (msg.StartsWith("JoinOrCreateRoom"))
-        {
-            HandleJoinOrCreateRoom(roomName);
-        }
-        else
-        {
-            Debug.Log("Unknown message: " + msg);
-        }
-
         // Try parsing the identifier
         int identifier;
         if (!int.TryParse(charParse[0], out identifier))
@@ -267,9 +257,6 @@ public class NetworkServer : MonoBehaviour
 
         else if (identifier == ClientServerSignifiers.JoinQueue)
         {
-            HandleJoinQueue();
-          
-
             HandleJoinOrCreateRoom(roomName);
         }
         else
@@ -280,6 +267,10 @@ public class NetworkServer : MonoBehaviour
 
     private void HandleJoinOrCreateRoom(string roomName)
     {
+        if (playerMatchID == -1)
+        {
+            playerMatchID = GetNextPlayerMatchID();
+        }
         // Check if a room with the given name already exists
         GameRoom existingRoom = roomList.FirstOrDefault(r => r.roomName == roomName);
 
@@ -309,13 +300,10 @@ public class NetworkServer : MonoBehaviour
             GameRoom newRoom = new GameRoom(playerMatchID, -1) { roomName = roomName };
             roomList.AddLast(newRoom);
             Debug.Log($"Created new room: {roomName} with playerID: {playerMatchID}");
-
-            // Wait for the second player to join this room
         }
 
         playerMatchID = -1; // Reset the match ID
     }
-
     private void HandleJoinQueue()
     {
         Debug.Log("Waiting to join game");
@@ -426,7 +414,9 @@ public class NetworkServer : MonoBehaviour
             {
                 if (connection.IsCreated)
                 {
-                    SendMessageToClient("LoginSuccess", connection);
+                    SendMessageToClient(ServerClientSignifiers.LoginComplete + "", connection);
+
+                    //SendMessageToClient("LoginSuccess", connection);
                     Debug.Log("Login successful for " + userName);
                 }
             }
@@ -438,7 +428,9 @@ public class NetworkServer : MonoBehaviour
             {
                 if (connection.IsCreated)
                 {
-                    SendMessageToClient("LoginFailed", connection);
+                    //SendMessageToClient("LoginFailed", connection);
+                    SendMessageToClient(ServerClientSignifiers.LoginFailed + "", connection);
+
                     Debug.Log("Login failed for " + userName);
                 }
             }

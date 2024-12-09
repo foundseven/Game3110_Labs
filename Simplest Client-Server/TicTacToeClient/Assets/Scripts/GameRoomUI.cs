@@ -35,7 +35,7 @@ public class GameRoomUI : MonoBehaviour
 
             string msg;
 
-            msg = ClientServerSignifiers.JoinGameRoomQueue + "," + roomName;
+            msg = ClientServerSignifiers.JoinQueue + "," + roomName;
             //need to create something in the network client to request room change
             //using a colon instead of a comma 
             //networkClient.SendMessageToServer($"JoinOrCreateRoom, " + roomName);
@@ -65,11 +65,6 @@ public class GameRoomUI : MonoBehaviour
     {
         //change the game state here
         statusText.text = "Game starting...";
-    }
-
-    public void OnRoomCreated()
-    {
-        statusText.text = "Room created! Waiting for an opponent...";
     }
 
     public void OnRoomFull()
