@@ -34,7 +34,7 @@ public class TicTacToeSquare : MonoBehaviour
     {
         this.icon = icon;
         isSquareTaken = true;
-        GetComponentInChildren<Text>().text = icon;
+        GetComponentInChildren<TextMeshProUGUI>().text = icon;
     }
 
 

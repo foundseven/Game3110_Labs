@@ -20,8 +20,7 @@ public class NetworkClient : MonoBehaviour
     const ushort NetworkPort = 9001;
     const string IPAddress = /*"192.168.2.20"*/"192.168.2.21";
     private GameStateManager gameStateManager;
-    //public TicTacToeSquare ttt;
-
+    private bool isPlayer1;
 
     void Start()
     {
@@ -151,10 +150,22 @@ public class NetworkClient : MonoBehaviour
         }
         else if (identifier == ServerClientSignifiers.StartGame)
         {
-            Debug.Log("Joined an existing room");
             FindObjectOfType<GameRoomUI>().OnOpponentJoined();
             gameStateManager.SetState(GameState.PlayGame);
-           // ttt.HandleGameStart(parts);
+        }
+        else if(identifier == ServerClientSignifiers.ChosenAsPlayerOne)
+        {
+            isPlayer1 = true;
+            FindObjectOfType<TicTacToeManager>().AssignPlayers(isPlayer1);
+            Debug.LogError("Player One chosen");
+
+        }
+        else if (identifier == ServerClientSignifiers.ChosenAsPlayerTwo)
+        {
+            isPlayer1 = false;
+            FindObjectOfType<TicTacToeManager>().AssignPlayers(isPlayer1);
+            Debug.LogError("Player two chosen");
+
         }
         else
         {
@@ -176,6 +187,22 @@ public class NetworkClient : MonoBehaviour
         buffer.Dispose();
     }
 
+    public bool IsPlayer1
+    {
+        get { return isPlayer1; }
+    }
+
+    public void SetPlayerRole(bool isPlayer1)
+    {
+        this.isPlayer1 = isPlayer1;
+
+        // Send the role information to the server
+        string msg = isPlayer1 ? ClientServerSignifiers.ChosenAsPlayerOne.ToString() : ClientServerSignifiers.ChosenAsPlayerTwo.ToString();
+        SendMessageToServer(msg);
+
+        //FindObjectOfType<GameRoomUI>().UpdatePlayerRoles(isPlayer1);
+    }
+
 }
 
 #region Signifiers
@@ -185,7 +212,13 @@ public static class ClientServerSignifiers
     public const int Login = 2;
 
     public const int JoinQueue = 3;
+    public const int MakeMove = 4;
 
+
+    public const int ChosenAsPlayerOne = 5;
+    public const int ChosenAsPlayerTwo = 7;
+
+    public const int OpponentChoseASquare = 8;
 }
 
 public static class ServerClientSignifiers
@@ -197,6 +230,11 @@ public static class ServerClientSignifiers
     public const int AccountCreationFailed = 4;
 
     public const int StartGame = 5;
+
+    public const int ChosenAsPlayerOne = 6;
+    public const int ChosenAsPlayerTwo = 7;
+
+    public const int OpponentChoseASquare = 8;
 
 }
 #endregion

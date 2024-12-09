@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-
 public class GameRoomUI : MonoBehaviour
 {
     [Header("UI Elements")]
@@ -68,4 +67,18 @@ public class GameRoomUI : MonoBehaviour
         roomNameInput.interactable = true;
         joinRoomButton.interactable = true;
     }
+
+    //public void UpdatePlayerRoles(bool isPlayer1)
+    //{
+    //    if (isPlayer1)
+    //    {
+    //        player1Text.text = "You are Player 1";
+    //        player2Text.text = "Opponent is Player 2";
+    //    }
+    //    else
+    //    {
+    //        player1Text.text = "Opponent is Player 1";
+    //        player2Text.text = "You are Player 2";
+    //    }
+    //}
 }

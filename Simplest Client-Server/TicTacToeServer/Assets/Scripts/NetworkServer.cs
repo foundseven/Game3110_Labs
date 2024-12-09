@@ -21,13 +21,9 @@ public class NetworkServer : MonoBehaviour
 
     const int MaxNumberOfClientConnections = 1000;
 
-    //account management
     List<Account> savedAccounts;
     string filePath;
 
-    //create a new list for rooms
-    //creating a linked list because we dont need them saved
-    //good for memory
     LinkedList<GameRoom> roomList;
     public int playerMatchID = -1;
 
@@ -202,7 +198,6 @@ public class NetworkServer : MonoBehaviour
             return;
         }
 
-
         #region See if they are creating an account or not
         if (identifier == ClientServerSignifiers.CreateAccount)
         {
@@ -259,6 +254,14 @@ public class NetworkServer : MonoBehaviour
         {
             HandleJoinOrCreateRoom(roomName);
         }
+        else if(identifier == ClientServerSignifiers.MakeMove)
+        {
+            int row = int.Parse(charParse[1]);
+            int col = int.Parse(charParse[2]);
+
+            // Broadcast move to opponent
+            NotifyOpponentMove(row, col);
+        }
         else
         {
             Debug.Log("Unknown identifier: " + identifier);
@@ -271,6 +274,7 @@ public class NetworkServer : MonoBehaviour
         {
             playerMatchID = GetNextPlayerMatchID();
         }
+
         // Check if a room with the given name already exists
         GameRoom existingRoom = roomList.FirstOrDefault(r => r.roomName == roomName);
 
@@ -279,20 +283,35 @@ public class NetworkServer : MonoBehaviour
             // If the room exists and has space, assign the player to this room
             existingRoom.playerID2 = playerMatchID;
             Debug.Log($"Joined existing room: {roomName} with playerID: {playerMatchID}");
-
-            // Notify both players to start the game
+          
+            //Notify both players to start the game
             foreach (var connection in networkConnections)
             {
                 if (connectionToPlayerId.ContainsKey(connection))
                 {
                     int playerId = connectionToPlayerId[connection];
-                    if (playerId == existingRoom.playerID1 || playerId == existingRoom.playerID2)
+                    if (playerId == existingRoom.playerID1 /*|| playerId == existingRoom.playerID2*/)
                     {
                         SendMessageToClient(ServerClientSignifiers.StartGame + "", connection);
-                        Debug.Log("You can now start the game!");
+
+                        playerMatchID = -1;
+                        SendMessageToClient(ServerClientSignifiers.ChosenAsPlayerOne + "", connection);
+                        
+                        Debug.Log("Player 1 chosen " + playerId + ", to " + connection);
+                        Debug.Log(existingRoom.playerID1);
+
+                       // Debug.Log("You can now start the game!");
+                    }
+                    if(playerId == existingRoom.playerID2)
+                    {
+                        SendMessageToClient(ServerClientSignifiers.StartGame + "", connection);
+                        Debug.Log("Player 2 chosen " + playerId + ", to " + connection);
+                        Debug.Log(existingRoom.playerID2);
+                        SendMessageToClient(ServerClientSignifiers.ChosenAsPlayerTwo + "", connection);
                     }
                 }
             }
+
         }
         else
         {
@@ -302,38 +321,11 @@ public class NetworkServer : MonoBehaviour
             Debug.Log($"Created new room: {roomName} with playerID: {playerMatchID}");
         }
 
-        playerMatchID = -1; // Reset the match ID
+        playerMatchID = -1;
     }
-    private void HandleJoinQueue()
-    {
-        Debug.Log("Waiting to join game");
 
-        //so first we need to assign the room id
-        //so check to see if they have been assigned
-        if (playerMatchID == -1)
-        {
-            playerMatchID = GetNextPlayerMatchID();
-        }
-        else
-        {
-            GameRoom GR = new GameRoom(playerMatchID, networkConnections.Length + 1);
-            roomList.AddLast(GR);
-
-            foreach (var connection in networkConnections)
-            {
-                if (connectionToPlayerId.ContainsKey(connection))
-                {
-                    int playerId = connectionToPlayerId[connection];
-                    SendMessageToClient(ServerClientSignifiers.StartGame + "", connection);
-                }
-            }
-
-            playerMatchID = -1;
-        }
-    }
     private int GetNextPlayerMatchID()
     {
-        //networkConnections.Length++;
         return networkConnections.Length;
     }
 
@@ -437,6 +429,22 @@ public class NetworkServer : MonoBehaviour
         }
     }
 
+    private void NotifyOpponentMove(int row, int col)
+    {
+        foreach (var connection in networkConnections)
+        {
+            if (connectionToPlayerId.ContainsKey(connection))
+            {
+                int playerId = connectionToPlayerId[connection];
+                // Find the opponent player and send move to them
+                if (playerId != playerMatchID) // Assuming playerMatchID is one of the players
+                {
+                    SendMessageToClient($"{ClientServerSignifiers.MakeMove},{row},{col}", connection);
+                }
+            }
+        }
+    }
+
     private GameRoom GetGameRoomNumber(int roomId)
     {
         //check through to see if there is a game room
@@ -460,6 +468,13 @@ public static class ClientServerSignifiers
     public const int Login = 2;
 
     public const int JoinQueue = 3;
+    public const int MakeMove = 4;
+
+    public const int ChosenAsPlayerOne = 6;
+    public const int ChosenAsPlayerTwo = 7;
+
+    public const int OpponentChoseASquare = 8;
+
 }
 
 public static class ServerClientSignifiers
@@ -471,6 +486,11 @@ public static class ServerClientSignifiers
     public const int AccountCreationFailed = 4;
 
     public const int StartGame = 5;
+
+    public const int ChosenAsPlayerOne = 6;
+    public const int ChosenAsPlayerTwo = 7;
+
+    public const int OpponentChoseASquare = 8;
 }
 
 #endregion
@@ -494,8 +514,6 @@ public class Account
 }
 public class GameRoom
 {
-    //need two players
-
     public int playerID1;
     public int playerID2;
     public string roomName;
