@@ -82,13 +82,13 @@ public class NetworkServer : MonoBehaviour
     {
         #region Check Input and Send Msg
 
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            for (int i = 0; i < networkConnections.Length; i++)
-            {
-                SendMessageToClient("Hello client's world, sincerely your network server", networkConnections[i]);
-            }
-        }
+        //if (Input.GetKeyDown(KeyCode.A))
+        //{
+        //    for (int i = 0; i < networkConnections.Length; i++)
+        //    {
+        //        SendMessageToClient("Hello client's world, sincerely your network server", networkConnections[i]);
+        //    }
+        //}
 
         #endregion
 
@@ -212,12 +212,12 @@ public class NetworkServer : MonoBehaviour
             return;
         }
 
-        string userName = charParse[1];
-        string password = charParse[2];
 
         #region See if they are creating an account or not
         if (identifier == ClientServerSignifiers.CreateAccount)
         {
+            string userName = charParse[1];
+            string password = charParse[2];
             bool checkIsUsed = false;
             //iterate through all the accounts to check
             foreach(Account a in savedAccounts)
@@ -258,6 +258,8 @@ public class NetworkServer : MonoBehaviour
         #region See if they are logging in
         else if (identifier == ClientServerSignifiers.Login)
         {
+            string userName = charParse[1];
+            string password = charParse[2];
             // Handle login logic
             HandleLogin(userName, password);
         }
@@ -265,7 +267,10 @@ public class NetworkServer : MonoBehaviour
 
         else if (identifier == ClientServerSignifiers.JoinQueue)
         {
-            //HandleJoinQueue();
+            HandleJoinQueue();
+          
+
+            HandleJoinOrCreateRoom(roomName);
         }
         else
         {
@@ -293,6 +298,7 @@ public class NetworkServer : MonoBehaviour
                     if (playerId == existingRoom.playerID1 || playerId == existingRoom.playerID2)
                     {
                         SendMessageToClient(ServerClientSignifiers.StartGame + "", connection);
+                        Debug.Log("You can now start the game!");
                     }
                 }
             }
@@ -310,77 +316,36 @@ public class NetworkServer : MonoBehaviour
         playerMatchID = -1; // Reset the match ID
     }
 
-    //private void HandleJoinQueue()
-    //{
-    //    Debug.Log("Waiting to join game");
+    private void HandleJoinQueue()
+    {
+        Debug.Log("Waiting to join game");
 
-    //    //so first we need to assign the room id
-    //    //so check to see if they have been assigned
-    //    //if (playerMatchID == -1)
-    //    //{
-    //    //    playerMatchID = GetNextPlayerMatchID();
-    //    //}
-    //    //else
-    //    //{
-    //    //    GameRoom GR = new GameRoom(playerMatchID, playerMatchID + 1);
-    //    //    roomList.AddLast(GR);
+        //so first we need to assign the room id
+        //so check to see if they have been assigned
+        if (playerMatchID == -1)
+        {
+            playerMatchID = GetNextPlayerMatchID();
+        }
+        else
+        {
+            GameRoom GR = new GameRoom(playerMatchID, networkConnections.Length + 1);
+            roomList.AddLast(GR);
 
-    //    //    foreach (var connection in networkConnections)
-    //    //    {
-    //    //        if (connectionToPlayerId.ContainsKey(connection))
-    //    //        {
-    //    //            int playerId = connectionToPlayerId[connection];
-    //    //            SendMessageToClient(ServerClientSignifiers.StartGame + "", connection);
-    //    //        }
-    //    //    }
+            foreach (var connection in networkConnections)
+            {
+                if (connectionToPlayerId.ContainsKey(connection))
+                {
+                    int playerId = connectionToPlayerId[connection];
+                    SendMessageToClient(ServerClientSignifiers.StartGame + "", connection);
+                }
+            }
 
-    //    //   playerMatchID = -1;
-    //    //}
-
-    //    GameRoom availableRoom = null;
-    //    foreach (var room in roomList)
-    //    {
-    //        if (room.playerID2 == -1)  // If there's space for another player
-    //        {
-    //            availableRoom = room;
-    //            break;
-    //        }
-    //    }
-
-    //    // If an available room is found, add the player to it
-    //    if (availableRoom != null)
-    //    {
-    //        availableRoom.playerID2 = playerMatchID;  // Assign the player to the room
-    //        Debug.Log("Assigned player to existing room with ID " + availableRoom.playerID1 + " and " + availableRoom.playerID2);
-
-    //        // Notify both players in the room that the game is starting
-    //        foreach (var connection in networkConnections)
-    //        {
-    //            if (connectionToPlayerId.ContainsKey(connection))
-    //            {
-    //                int playerId = connectionToPlayerId[connection];
-    //                if (playerId == availableRoom.playerID1 || playerId == availableRoom.playerID2)
-    //                {
-    //                    SendMessageToClient(ServerClientSignifiers.StartGame + "", connection);
-    //                }
-    //            }
-    //        }
-
-    //        playerMatchID = -1;  // Reset playerMatchID after assigning to a room
-    //    }
-    //    else
-    //    {
-    //        // If no room is available, create a new room
-    //        GameRoom newRoom = new GameRoom(playerMatchID, -1);  // Create a room with only one player
-    //        roomList.AddLast(newRoom);
-    //        Debug.Log("Created a new room with ID " + newRoom.playerID1);
-
-    //        // Wait for the second player to join this room
-    //        playerMatchID = -1;  // Reset playerMatchID until the second player joins
-    //    }
-    //}
+            playerMatchID = -1;
+        }
+    }
     private int GetNextPlayerMatchID()
     {
+        //networkConnections.Length++;
         return networkConnections.Length;
     }
 

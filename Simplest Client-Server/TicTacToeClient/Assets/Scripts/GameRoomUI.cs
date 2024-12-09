@@ -31,10 +31,17 @@ public class GameRoomUI : MonoBehaviour
         string roomName = roomNameInput.text;
         if (!string.IsNullOrEmpty(roomName))
         {
-            Debug.Log("Sending message: " + $"JoinOrCreateRoom:{roomName}");
+            Debug.Log("Sending message: " + $"JoinOrCreateRoom, {roomName}");
 
+            string msg;
+
+            msg = ClientServerSignifiers.JoinGameRoomQueue + "," + roomName;
             //need to create something in the network client to request room change
-            networkClient.SendMessageToServer($"JoinOrCreateRoom:{roomName}");
+            //using a colon instead of a comma 
+            //networkClient.SendMessageToServer($"JoinOrCreateRoom, " + roomName);
+
+            //networkClient.SendMessageToServer($"JoinOrCreateRoom, {msg}");
+            networkClient.SendMessageToServer(msg);
 
             statusText.text = "Waiting for opponent...";
             roomNameInput.interactable = false;

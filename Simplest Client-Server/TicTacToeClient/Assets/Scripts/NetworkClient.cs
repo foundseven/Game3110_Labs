@@ -43,8 +43,8 @@ public class NetworkClient : MonoBehaviour
     {
         #region Check Input and Send Msg
 
-        if (Input.GetKeyDown(KeyCode.A))
-            SendMessageToServer("Hello server's world, sincerely your network client");
+      //  if (Input.GetKeyDown(KeyCode.A))
+           // SendMessageToServer("Hello server's world, sincerely your network client");
 
         #endregion
 
@@ -106,9 +106,10 @@ public class NetworkClient : MonoBehaviour
         return true;
     }
 
+    //have this exist in a seperate .cs
     public void RequestGameRoom(string roomName)
     {
-        string message = "CreateOrJoinRoom," + roomName; // Format the message to send
+        string message = "CreateOrJoinRoom:" + roomName; // Format the message to send
         SendMessageToServer(message);
     }
 
@@ -141,6 +142,7 @@ public class NetworkClient : MonoBehaviour
         //    FindObjectOfType<GameRoomUI>().OnRoomFull();
         //}
 
+        //give string parts a variable
         string[] parts = msg.Split(':');
 
         // Check the first part for the message type
@@ -212,6 +214,9 @@ public static class ClientServerSignifiers
 {
     public const int CreateAccount = 1;
     public const int Login = 2;
+
+    public const int JoinGameRoomQueue = 3;
+
 }
 
 public static class ServerClientSignifiers
