@@ -35,11 +35,6 @@ public class Login : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        
-    }
-
     public void ConfirmButtonPressed()
     {
         string username = usernameInput.text;

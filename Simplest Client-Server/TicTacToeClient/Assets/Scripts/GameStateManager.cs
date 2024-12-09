@@ -7,8 +7,8 @@ public class GameStateManager : MonoBehaviour
     public GameState currentState;
 
     public GameObject loginPanel;
-    public GameObject gamePanel;
-
+    public GameObject gameRoomPanel;
+    public GameObject gamePlayPanel;
 
     // Start is called before the first frame update
     void Start()
@@ -28,11 +28,18 @@ public class GameStateManager : MonoBehaviour
         {
             case GameState.Login:
                 loginPanel.SetActive(true);
-                gamePanel.SetActive(false);
+                gameRoomPanel.SetActive(false);
+                gamePlayPanel.SetActive(false);
                 break;
-            case GameState.InGame:
+            case GameState.GameRoom:
                 loginPanel.SetActive(false);
-                gamePanel.SetActive(true);
+                gameRoomPanel.SetActive(true);
+                gamePlayPanel.SetActive(false);
+                break;
+            case GameState.PlayGame:
+                loginPanel.SetActive(false);
+                gameRoomPanel.SetActive(false);
+                gamePlayPanel.SetActive(true);
                 break;
         }
     }
@@ -40,7 +47,7 @@ public class GameStateManager : MonoBehaviour
     private void HideAllPanels()
     {
         loginPanel.SetActive(false);
-        gamePanel.SetActive(false);
+        gameRoomPanel.SetActive(false);
     }
 
     public void OnServerMessageReceived(string message)
@@ -48,7 +55,7 @@ public class GameStateManager : MonoBehaviour
         if (message == "LoginSuccess")
         {
             Debug.Log("Changing state...");
-            SetState(GameState.InGame);
+            SetState(GameState.GameRoom);
         }
         else if (message == "LoginFailed")
         {

@@ -23,7 +23,6 @@ public class GameRoomUI : MonoBehaviour
        networkClient = FindObjectOfType<NetworkClient>();
        joinRoomButton.onClick.AddListener(OnJoinRoomButtonClicked);
        backButton.onClick.AddListener(OnBackButtonClicked);
-
     }
 
     void OnJoinRoomButtonClicked()
@@ -36,11 +35,7 @@ public class GameRoomUI : MonoBehaviour
             string msg;
 
             msg = ClientServerSignifiers.JoinQueue + "," + roomName;
-            //need to create something in the network client to request room change
-            //using a colon instead of a comma 
-            //networkClient.SendMessageToServer($"JoinOrCreateRoom, " + roomName);
 
-            //networkClient.SendMessageToServer($"JoinOrCreateRoom, {msg}");
             networkClient.SendMessageToServer(msg);
 
             statusText.text = "Waiting for opponent...";

@@ -7,7 +7,8 @@ using System.Text;
 public enum GameState
 {
     Login,
-    InGame,
+    GameRoom,
+    PlayGame
 }
 
 public class NetworkClient : MonoBehaviour
@@ -19,6 +20,8 @@ public class NetworkClient : MonoBehaviour
     const ushort NetworkPort = 9001;
     const string IPAddress = /*"192.168.2.20"*/"192.168.2.21";
     private GameStateManager gameStateManager;
+    //public TicTacToeSquare ttt;
+
 
     void Start()
     {
@@ -106,14 +109,6 @@ public class NetworkClient : MonoBehaviour
         return true;
     }
 
-    //have this exist in a seperate .cs
-    public void RequestGameRoom(string roomName)
-    {
-        string message = "CreateOrJoinRoom:" + roomName; // Format the message to send
-        SendMessageToServer(message);
-    }
-
-
     private void ProcessReceivedMsg(string msg)
     {
         Debug.Log("Msg received = " + msg);
@@ -158,12 +153,9 @@ public class NetworkClient : MonoBehaviour
         {
             Debug.Log("Joined an existing room");
             FindObjectOfType<GameRoomUI>().OnOpponentJoined();
+            gameStateManager.SetState(GameState.PlayGame);
+           // ttt.HandleGameStart(parts);
         }
-        //else if (msg == "RoomFull")
-        //{
-        //    Debug.Log("Room is full. Please try another room");
-        //    FindObjectOfType<GameRoomUI>().OnRoomFull();
-        //}
         else
         {
             Debug.LogWarning("Unknown message received: " + msg);
