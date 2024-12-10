@@ -11,6 +11,9 @@ using System.Linq;
 
 public class NetworkServer : MonoBehaviour
 {
+
+    #region Variables
+
     public NetworkDriver networkDriver;
     private NativeList<NetworkConnection> networkConnections;
 
@@ -30,6 +33,7 @@ public class NetworkServer : MonoBehaviour
     // Mapping between NetworkConnection and unique player ID
     private Dictionary<NetworkConnection, int> connectionToPlayerId;
 
+    #endregion
 
     void Start()
     {
@@ -152,6 +156,7 @@ public class NetworkServer : MonoBehaviour
         #endregion
     }
 
+    #region Methods
     private bool AcceptIncomingConnection()
     {
         NetworkConnection connection = networkDriver.Accept();
@@ -180,6 +185,8 @@ public class NetworkServer : MonoBehaviour
     {
         Debug.Log("Msg received = " + msg);
 
+        #region Check to see what message was sent via Signifier
+
         //process each line from the file
         string[] charParse = msg.Split(',');
         if (charParse.Length < 2)
@@ -197,6 +204,8 @@ public class NetworkServer : MonoBehaviour
             Debug.LogError("Failed to parse identifier: " + charParse[0]);
             return;
         }
+
+        #region Depending on identifier sent back, work accordingly
 
         #region See if they are creating an account or not
         if (identifier == ClientServerSignifiers.CreateAccount)
@@ -250,23 +259,44 @@ public class NetworkServer : MonoBehaviour
         }
         #endregion
 
+        #region Joining Queue
+
         else if (identifier == ClientServerSignifiers.JoinQueue)
         {
             HandleJoinOrCreateRoom(roomName);
         }
-        else if(identifier == ClientServerSignifiers.MakeMove)
+
+        #endregion
+
+        #region Making move
+
+        else if (identifier == ClientServerSignifiers.MakeMove)
         {
             int row = int.Parse(charParse[1]);
             int col = int.Parse(charParse[2]);
             Debug.Log("Move made");
+
             // Broadcast move to opponent
             NotifyOpponentMove(row, col);
         }
+
+        #endregion
+
+        #region All fails - Send Debug message saying HUH???
+
         else
         {
             Debug.Log("Unknown identifier: " + identifier);
         }
+
+        #endregion
+
+        #endregion
+
+        #endregion
     }
+
+    #region Room join / Creation
 
     private void HandleJoinOrCreateRoom(string roomName)
     {
@@ -290,6 +320,9 @@ public class NetworkServer : MonoBehaviour
                 if (connectionToPlayerId.ContainsKey(connection))
                 {
                     int playerId = connectionToPlayerId[connection];
+
+                    #region If the ID matchs player 1 - Assign player 1 role
+
                     if (playerId == existingRoom.playerID1)
                     {
                         SendMessageToClient(ServerClientSignifiers.StartGame + "", connection);
@@ -299,16 +332,21 @@ public class NetworkServer : MonoBehaviour
                         
                         Debug.Log("Player 1 chosen " + playerId + ", to " + connection);
                         Debug.Log(existingRoom.playerID1);
-
-                       // Debug.Log("You can now start the game!");
                     }
-                    if(playerId == existingRoom.playerID2)
+
+                    #endregion
+
+                    #region If it matches player 2 - Assign player 2 role
+
+                    if (playerId == existingRoom.playerID2)
                     {
                         SendMessageToClient(ServerClientSignifiers.StartGame + "", connection);
                         Debug.Log("Player 2 chosen " + playerId + ", to " + connection);
                         Debug.Log(existingRoom.playerID2);
                         SendMessageToClient(ServerClientSignifiers.ChosenAsPlayerTwo + "", connection);
                     }
+
+                    #endregion
                 }
             }
 
@@ -324,10 +362,14 @@ public class NetworkServer : MonoBehaviour
         playerMatchID = -1;
     }
 
+    #endregion
+
     private int GetNextPlayerMatchID()
     {
         return networkConnections.Length;
     }
+
+    #region Send message to client
 
     public void SendMessageToClient(string msg, NetworkConnection networkConnection)
     {
@@ -345,7 +387,9 @@ public class NetworkServer : MonoBehaviour
         buffer.Dispose();
     }
 
-    //create a save new user 
+    #endregion
+
+    #region Login Methods
     private void SaveNewUser(Account newAccount)
     {
         //add new account
@@ -408,7 +452,6 @@ public class NetworkServer : MonoBehaviour
                 {
                     SendMessageToClient(ServerClientSignifiers.LoginComplete + "", connection);
 
-                    //SendMessageToClient("LoginSuccess", connection);
                     Debug.Log("Login successful for " + userName);
                 }
             }
@@ -420,7 +463,6 @@ public class NetworkServer : MonoBehaviour
             {
                 if (connection.IsCreated)
                 {
-                    //SendMessageToClient("LoginFailed", connection);
                     SendMessageToClient(ServerClientSignifiers.LoginFailed + "", connection);
 
                     Debug.Log("Login failed for " + userName);
@@ -428,6 +470,8 @@ public class NetworkServer : MonoBehaviour
             }
         }
     }
+
+    #endregion
 
     private void NotifyOpponentMove(int row, int col)
     {
@@ -446,18 +490,7 @@ public class NetworkServer : MonoBehaviour
         }
     }
 
-    private GameRoom GetGameRoomNumber(int roomId)
-    {
-        //check through to see if there is a game room
-        foreach(GameRoom GR in roomList) 
-        {
-            if(GR.playerID1 == roomId || GR.playerID2 == roomId)
-            {
-                return GR;
-            }
-        }
-        return null;
-    }
+    #endregion
 
 }
 
