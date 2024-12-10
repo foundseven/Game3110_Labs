@@ -4,6 +4,7 @@ using Unity.Collections;
 using Unity.Networking.Transport;
 using System.Text;
 
+#region GameState Enum
 public enum GameState
 {
     Login,
@@ -11,16 +12,24 @@ public enum GameState
     PlayGame
 }
 
+#endregion
+
 public class NetworkClient : MonoBehaviour
 {
+    #region Variables
+
     NetworkDriver networkDriver;
     NetworkConnection networkConnection;
     NetworkPipeline reliableAndInOrderPipeline;
     NetworkPipeline nonReliableNotInOrderedPipeline;
+
     const ushort NetworkPort = 9001;
     const string IPAddress = /*"192.168.2.20"*/"10.0.225.193"; //192.168.2.21 - home
+
     private GameStateManager gameStateManager;
     private bool isPlayer1;
+
+    #endregion
 
     void Start()
     {
@@ -99,6 +108,8 @@ public class NetworkClient : MonoBehaviour
         #endregion
     }
 
+    #region Methods
+
     private bool PopNetworkEventAndCheckForData(out NetworkEvent.Type networkEventType, out DataStreamReader streamReader, out NetworkPipeline pipelineUsedToSendEvent)
     {
         networkEventType = networkConnection.PopEvent(networkDriver, out streamReader, out pipelineUsedToSendEvent);
@@ -112,7 +123,8 @@ public class NetworkClient : MonoBehaviour
     {
         Debug.Log("Msg received = " + msg);
 
-        //give string parts a variable
+        #region Check to see what message was sent via Signifier
+
         string[] parts = msg.Split(',');
 
         int identifier;
@@ -121,14 +133,20 @@ public class NetworkClient : MonoBehaviour
             Debug.LogError("Failed to parse identifier: " + parts[0]);
             return;
         }
+
+        #region Depending on identifier sent back, work accordingly
+
+        #region Login Identifiers
+
         if (identifier == ServerClientSignifiers.LoginComplete)
         {
             gameStateManager.OnServerMessageReceived("LoginSuccess");
         }
         else if (identifier == ServerClientSignifiers.LoginFailed)
         {
-            Debug.Log("lOGIN FAILED!");
-            if (parts.Length > 1) // Check for specific failure reasons
+            Debug.Log("LOGIN FAILED!");
+
+            if (parts.Length > 1)
             {
                 if (parts[1] == "WrongPassword")
                 {
@@ -147,12 +165,22 @@ public class NetworkClient : MonoBehaviour
                 FindObjectOfType<Login>().feedbackText.text = "Login failed. Please try again.";
             }
         }
+
+        #endregion
+
+        #region Start Game
+
         else if (identifier == ServerClientSignifiers.StartGame)
         {
             FindObjectOfType<GameRoomUI>().OnOpponentJoined();
             gameStateManager.SetState(GameState.PlayGame);
         }
-        else if(identifier == ServerClientSignifiers.ChosenAsPlayerOne)
+
+        #endregion
+
+        #region Chosen player 1 VS player 2
+
+        else if (identifier == ServerClientSignifiers.ChosenAsPlayerOne)
         {
             isPlayer1 = true;
             FindObjectOfType<TicTacToeManager>().AssignPlayers(isPlayer1);
@@ -166,7 +194,12 @@ public class NetworkClient : MonoBehaviour
             Debug.LogError("Player two chosen");
 
         }
-        else if(identifier == ClientServerSignifiers.MakeMove)
+
+        #endregion
+
+        #region Making move
+
+        else if (identifier == ClientServerSignifiers.MakeMove)
         {
             Debug.Log("Move has been made, checking state..");
             if(parts.Length >= 3)
@@ -188,13 +221,22 @@ public class NetworkClient : MonoBehaviour
                 }
 
             }
-    
-                //FindObjectOfType<TicTacToeManager>().CheckGameState();
         }
+
+        #endregion
+
+        #region All fails - Send Debug message saying HUH???
+
         else
         {
             Debug.LogWarning("Unknown message received: " + msg);
         }
+
+        #endregion 
+
+        #endregion
+
+        #endregion
     }
 
     public void SendMessageToServer(string msg)
@@ -226,6 +268,7 @@ public class NetworkClient : MonoBehaviour
 
     }
 
+    #endregion 
 }
 
 #region Signifiers

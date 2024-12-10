@@ -6,6 +6,8 @@ using TMPro;
 
 public class GameRoomUI : MonoBehaviour
 {
+    #region Variables
+
     [Header("UI Elements")]
     public TMP_InputField roomNameInput;
     public Button joinRoomButton;
@@ -14,8 +16,8 @@ public class GameRoomUI : MonoBehaviour
 
     private NetworkClient networkClient;
 
+    #endregion
 
-    // Start is called before the first frame update
     void Start()
     {
        statusText.text = "Input room number to join or create a room";
@@ -24,29 +26,42 @@ public class GameRoomUI : MonoBehaviour
        backButton.onClick.AddListener(OnBackButtonClicked);
     }
 
+    #region Methods
     void OnJoinRoomButtonClicked()
     {
         string roomName = roomNameInput.text;
+
+        #region Checking to see if room can be joined 
+
         if (!string.IsNullOrEmpty(roomName))
         {
             Debug.Log("Sending message: " + $"JoinOrCreateRoom, {roomName}");
 
+            #region It can be, so send message to server to jon queue
             string msg;
 
             msg = ClientServerSignifiers.JoinQueue + "," + roomName;
 
             networkClient.SendMessageToServer(msg);
 
+            #endregion
+
             statusText.text = "Waiting for opponent...";
             roomNameInput.interactable = false;
             joinRoomButton.interactable = false;
         }
-        else if(string.IsNullOrEmpty(roomName))
+
+        #region Room is null or empty, so tell the user via UI
+        else if (string.IsNullOrEmpty(roomName))
         {
             Debug.Log("Cannot have empty field!");
             statusText.text = "Room name cannot be empty!";
         }
+        #endregion
+
+        #endregion
     }
+    //todo - needs some work to actually remove the player from the queue
     void OnBackButtonClicked()
     {
         statusText.text = "Input room number to join or create a room";
@@ -57,7 +72,6 @@ public class GameRoomUI : MonoBehaviour
 
     public void OnOpponentJoined()
     {
-        //change the game state here
         statusText.text = "Game starting...";
     }
 
@@ -68,17 +82,6 @@ public class GameRoomUI : MonoBehaviour
         joinRoomButton.interactable = true;
     }
 
-    //public void UpdatePlayerRoles(bool isPlayer1)
-    //{
-    //    if (isPlayer1)
-    //    {
-    //        player1Text.text = "You are Player 1";
-    //        player2Text.text = "Opponent is Player 2";
-    //    }
-    //    else
-    //    {
-    //        player1Text.text = "Opponent is Player 1";
-    //        player2Text.text = "You are Player 2";
-    //    }
-    //}
+    #endregion
+
 }

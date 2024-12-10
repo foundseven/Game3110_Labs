@@ -6,53 +6,67 @@ using TMPro;
 
 public class TicTacToeManager : MonoBehaviour
 {
+    #region Variables 
+
+    [Header("UI Elements")]
     public GameObject squarePrefab;
     public Transform gridParent;
     public TextMeshProUGUI playerNameText;
     public TextMeshProUGUI player2Text;
 
-    private NetworkClient networkClient;
-
+    [Header("Debugging purposes")]
     [SerializeField]
     List<TicTacToeSquare> ticTacToeSquares = new List<TicTacToeSquare>();
-
-    [SerializeField]
-    private string currentPlayerIcon;
-
+    
     [SerializeField]
     private string player1Icon = "X";
+
     [SerializeField]
     private string player2Icon = "O";
 
+    #region Private Variables
+
+    private NetworkClient networkClient;
+    private string currentPlayerIcon;
     private bool isPlayerTurn = true;
     private bool isPlayer1Turn = true;
-    // Start is called before the first frame update
+
+    #endregion
+
+    #endregion
+
     void Start()
     {
         networkClient = FindObjectOfType<NetworkClient>();
+
+        #region Set up board and Assign the players to 1 or 2
+        
         InitializeBoard();
 
         bool isPlayer1 = networkClient.IsPlayer1;
-        Debug.Log(isPlayer1 + " - isPLayer1");
-        Debug.Log(networkClient.IsPlayer1);
         AssignPlayers(isPlayer1);
+
+        #endregion
+
+        Debug.Log(networkClient.IsPlayer1);
+
+        #region On Game Start - Player 1 always goes first
 
         if (isPlayer1)
         {
             currentPlayerIcon = player1Icon; // Player 1 starts
             Debug.Log(isPlayer1 + " - isPlayer1");
-
-            // isPlayerTurn = true;
         }
         else
         {
             currentPlayerIcon = player2Icon; // Player 2 waits
             Debug.Log(isPlayer1 + " - isPlayer2");
-
-            //isPlayerTurn = false; 
         }
+
+        #endregion
     }
 
+    #region Methods
     void InitializeBoard()
     {
         for (int row = 0; row < 3; row++)
@@ -95,20 +109,10 @@ public class TicTacToeManager : MonoBehaviour
 
     public void OnOpponentMove(int row, int col)
     {
-        //TicTacToeSquare square = ticTacToeSquares.Find(s => s.row == row && s.column == col);
-        //if (square != null)
-        //{
-        //    square.ClaimSquare(currentPlayerIcon == "X" ? "O" : "X");
-        //    isPlayerTurn = true;
-
-        //    CheckGameState();
-        //}
-
         string opponentIcon = currentPlayerIcon == "X" ? "O" : "X";
 
         UpdateBoard(row, col, opponentIcon);
 
-        // Update turn states
         isPlayerTurn = true;
 
         CheckGameState();
@@ -146,6 +150,7 @@ public class TicTacToeManager : MonoBehaviour
             player2Text.text = "Opponent is Player 1";
         }
     }
+
     void SwitchTurn()
     {
         Debug.Log("Switching ...");
@@ -169,6 +174,7 @@ public class TicTacToeManager : MonoBehaviour
         else
         {
             playerNameText.text = "Player 2's Turn";
+            
             Debug.Log("waiting for opponent to play");
         }
 
@@ -188,6 +194,7 @@ public class TicTacToeManager : MonoBehaviour
         }
     }
 
+    #region Win conditions
     bool CheckWinCondition()
     {
         // Check rows, columns, and diagonals
@@ -227,5 +234,9 @@ public class TicTacToeManager : MonoBehaviour
             square.GetComponent<Button>().interactable = false;
         }
     }
+
+    #endregion
+
+    #endregion
 }
 
