@@ -258,7 +258,7 @@ public class NetworkServer : MonoBehaviour
         {
             int row = int.Parse(charParse[1]);
             int col = int.Parse(charParse[2]);
-
+            Debug.Log("Move made");
             // Broadcast move to opponent
             NotifyOpponentMove(row, col);
         }
@@ -290,7 +290,7 @@ public class NetworkServer : MonoBehaviour
                 if (connectionToPlayerId.ContainsKey(connection))
                 {
                     int playerId = connectionToPlayerId[connection];
-                    if (playerId == existingRoom.playerID1 /*|| playerId == existingRoom.playerID2*/)
+                    if (playerId == existingRoom.playerID1)
                     {
                         SendMessageToClient(ServerClientSignifiers.StartGame + "", connection);
 
@@ -436,9 +436,10 @@ public class NetworkServer : MonoBehaviour
             if (connectionToPlayerId.ContainsKey(connection))
             {
                 int playerId = connectionToPlayerId[connection];
-                // Find the opponent player and send move to them
-                if (playerId != playerMatchID) // Assuming playerMatchID is one of the players
+
+                if (playerId != playerMatchID) 
                 {
+                    Debug.Log("Sending move made to client...");
                     SendMessageToClient($"{ClientServerSignifiers.MakeMove},{row},{col}", connection);
                 }
             }
@@ -491,6 +492,7 @@ public static class ServerClientSignifiers
     public const int ChosenAsPlayerTwo = 7;
 
     public const int OpponentChoseASquare = 8;
+    //public const int MoveSelected = 9;
 }
 
 #endregion

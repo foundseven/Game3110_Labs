@@ -32,18 +32,24 @@ public class TicTacToeManager : MonoBehaviour
         networkClient = FindObjectOfType<NetworkClient>();
         InitializeBoard();
 
-        bool isPlayer1 = networkClient.IsPlayer1; 
+        bool isPlayer1 = networkClient.IsPlayer1;
+        Debug.Log(isPlayer1 + " - isPLayer1");
+        Debug.Log(networkClient.IsPlayer1);
         AssignPlayers(isPlayer1);
 
         if (isPlayer1)
         {
             currentPlayerIcon = player1Icon; // Player 1 starts
-            isPlayerTurn = true;
+            Debug.Log(isPlayer1 + " - isPlayer1");
+
+            // isPlayerTurn = true;
         }
         else
         {
             currentPlayerIcon = player2Icon; // Player 2 waits
-            //isPlayerTurn = false; // Set Player 2's turn to false initially
+            Debug.Log(isPlayer1 + " - isPlayer2");
+
+            //isPlayerTurn = false; 
         }
     }
 
@@ -70,29 +76,45 @@ public class TicTacToeManager : MonoBehaviour
         if (!isPlayerTurn || squarePressed.isSquareTaken)
             return;
 
-        squarePressed.ClaimSquare(currentPlayerIcon);
-        //isPlayerTurn = false;
+       if(isPlayerTurn)
+       {
+            squarePressed.ClaimSquare(currentPlayerIcon);
 
-        // Send move to the server
-        string msg = $"{ClientServerSignifiers.MakeMove},{squarePressed.row},{squarePressed.column}";
-        networkClient.SendMessageToServer(msg);
+            // Send move to the server
+            string msg = $"{ClientServerSignifiers.MakeMove},{squarePressed.row},{squarePressed.column}";
+            networkClient.SendMessageToServer(msg);
+            if(squarePressed)
+            {
+                isPlayerTurn = false;
+
+            }
+       }
 
         CheckGameState();
     }
 
     public void OnOpponentMove(int row, int col)
     {
-        TicTacToeSquare square = ticTacToeSquares.Find(s => s.row == row && s.column == col);
-        if (square != null)
-        {
-            square.ClaimSquare(currentPlayerIcon == "X" ? "O" : "X");
-            isPlayerTurn = true;
+        //TicTacToeSquare square = ticTacToeSquares.Find(s => s.row == row && s.column == col);
+        //if (square != null)
+        //{
+        //    square.ClaimSquare(currentPlayerIcon == "X" ? "O" : "X");
+        //    isPlayerTurn = true;
 
-            CheckGameState();
-        }
+        //    CheckGameState();
+        //}
+
+        string opponentIcon = currentPlayerIcon == "X" ? "O" : "X";
+
+        UpdateBoard(row, col, opponentIcon);
+
+        // Update turn states
+        isPlayerTurn = true;
+
+        CheckGameState();
     }
 
-    void CheckGameState()
+    public void CheckGameState()
     {
         if (CheckWinCondition())
         {
@@ -106,6 +128,7 @@ public class TicTacToeManager : MonoBehaviour
         }
         else
         {
+            Debug.Log("Checked game state, no wins yet...");
             SwitchTurn();
         }
     }
@@ -126,22 +149,42 @@ public class TicTacToeManager : MonoBehaviour
     void SwitchTurn()
     {
         Debug.Log("Switching ...");
-        //currentPlayerIcon = currentPlayerIcon == "X" ? "O" : "X";
 
         // Switch the player turn
-        isPlayer1Turn = !isPlayer1Turn;
+        if(isPlayer1Turn)
+        {
+            isPlayer1Turn = false;
+        }
+        else if(!isPlayer1Turn)
+        {
+            isPlayer1Turn = true;
+        }
         currentPlayerIcon = isPlayer1Turn ? player1Icon : player2Icon;
 
         // Update UI to reflect whose turn it is
         if (isPlayer1Turn)
         {
             playerNameText.text = "Player 1's Turn";
-            player2Text.text = "Player 2 is Waiting";
         }
         else
         {
             playerNameText.text = "Player 2's Turn";
-            player2Text.text = "Player 1 is Waiting";
+            Debug.Log("waiting for opponent to play");
+        }
+
+    }
+
+    void UpdateBoard(int row, int col, string icon)
+    {
+        TicTacToeSquare square = ticTacToeSquares.Find(s => s.row == row && s.column == col);
+
+        if (square != null && !square.isSquareTaken)
+        {
+            square.ClaimSquare(icon); // Updates the UI and marks the square as taken
+        }
+        else
+        {
+            Debug.LogWarning($"Attempted to update a square that is already taken or doesn't exist: Row {row}, Col {col}");
         }
     }
 

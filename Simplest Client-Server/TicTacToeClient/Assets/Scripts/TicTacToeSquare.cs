@@ -23,10 +23,20 @@ public class TicTacToeSquare : MonoBehaviour
         diagonal2 = (row + column) == maxColumns - 1;
     }
 
-    void OnPressed()
+    public void OnPressed()
     {
-        if (!isSquareTaken)
-            OnSquarePressed.Invoke(this);
+        //if (!isSquareTaken)
+        //    OnSquarePressed.Invoke(this);
+
+
+        if (OnSquarePressed != null)
+        {
+            if (!isSquareTaken)
+            {
+                OnSquarePressed(this);
+                isSquareTaken = true;
+            }
+        }
     }
 
     //set square as taken, assign it an X or an O
@@ -35,6 +45,7 @@ public class TicTacToeSquare : MonoBehaviour
         this.icon = icon;
         isSquareTaken = true;
         GetComponentInChildren<TextMeshProUGUI>().text = icon;
+        GetComponent<Button>().interactable = false;
     }
 
 

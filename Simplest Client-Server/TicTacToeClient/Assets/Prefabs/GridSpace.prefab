@@ -275,10 +275,10 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 321220246441161378}
+      - m_Target: {fileID: 6329763667510148072}
         m_TargetAssemblyTypeName: TicTacToeSquare, Assembly-CSharp
-        m_MethodName: 
-        m_Mode: 5
+        m_MethodName: OnPressed
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine

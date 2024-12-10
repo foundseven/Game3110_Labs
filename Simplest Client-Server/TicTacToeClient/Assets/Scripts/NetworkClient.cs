@@ -18,7 +18,7 @@ public class NetworkClient : MonoBehaviour
     NetworkPipeline reliableAndInOrderPipeline;
     NetworkPipeline nonReliableNotInOrderedPipeline;
     const ushort NetworkPort = 9001;
-    const string IPAddress = /*"192.168.2.20"*/"192.168.2.21";
+    const string IPAddress = /*"192.168.2.20"*/"10.0.225.193"; //192.168.2.21 - home
     private GameStateManager gameStateManager;
     private bool isPlayer1;
 
@@ -121,7 +121,6 @@ public class NetworkClient : MonoBehaviour
             Debug.LogError("Failed to parse identifier: " + parts[0]);
             return;
         }
-
         if (identifier == ServerClientSignifiers.LoginComplete)
         {
             gameStateManager.OnServerMessageReceived("LoginSuccess");
@@ -167,6 +166,31 @@ public class NetworkClient : MonoBehaviour
             Debug.LogError("Player two chosen");
 
         }
+        else if(identifier == ClientServerSignifiers.MakeMove)
+        {
+            Debug.Log("Move has been made, checking state..");
+            if(parts.Length >= 3)
+            {
+                int row = int.Parse(parts[1]);
+                int col = int.Parse(parts[2]);
+
+                // Find the TicTacToeManager and update the board
+                TicTacToeManager ticTacToeManager = FindObjectOfType<TicTacToeManager>();
+                if (ticTacToeManager != null)
+                {
+                    ticTacToeManager.OnOpponentMove(row, col);
+                    FindObjectOfType<TicTacToeManager>().CheckGameState();
+
+                }
+                else
+                {
+                    Debug.LogError("TicTacToeManager not found!");
+                }
+
+            }
+    
+                //FindObjectOfType<TicTacToeManager>().CheckGameState();
+        }
         else
         {
             Debug.LogWarning("Unknown message received: " + msg);
@@ -200,7 +224,6 @@ public class NetworkClient : MonoBehaviour
         string msg = isPlayer1 ? ClientServerSignifiers.ChosenAsPlayerOne.ToString() : ClientServerSignifiers.ChosenAsPlayerTwo.ToString();
         SendMessageToServer(msg);
 
-        //FindObjectOfType<GameRoomUI>().UpdatePlayerRoles(isPlayer1);
     }
 
 }
