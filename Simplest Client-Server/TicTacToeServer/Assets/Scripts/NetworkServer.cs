@@ -9,9 +9,10 @@ using UnityEditor.MemoryProfiler;
 using Unity.VisualScripting;
 using System.Linq;
 
+//--TODO--
+//decouple network framework tool from your network msg processing
 public class NetworkServer : MonoBehaviour
 {
-
     #region Variables
 
     public NetworkDriver networkDriver;
@@ -24,6 +25,7 @@ public class NetworkServer : MonoBehaviour
 
     const int MaxNumberOfClientConnections = 1000;
 
+    //add to loginauth
     List<Account> savedAccounts;
     string filePath;
 
@@ -54,6 +56,7 @@ public class NetworkServer : MonoBehaviour
         networkConnections = new NativeList<NetworkConnection>(MaxNumberOfClientConnections, Allocator.Persistent);
 
         #region Account File Path
+        //logic goes to new 
         savedAccounts = new List<Account>();
         filePath = Application.dataPath + Path.DirectorySeparatorChar + "savedAccountData.txt";
         if(File.Exists(filePath))
@@ -181,6 +184,7 @@ public class NetworkServer : MonoBehaviour
     }
 
     //this need to get reworked
+    // todo - 
     private void ProcessReceivedMsg(string msg)
     {
         Debug.Log("Msg received = " + msg);
@@ -389,6 +393,8 @@ public class NetworkServer : MonoBehaviour
 
     #endregion
 
+    //TODO
+    //make a login authenticator script that holds this logic
     #region Login Methods
     private void SaveNewUser(Account newAccount)
     {
@@ -529,6 +535,8 @@ public static class ServerClientSignifiers
 }
 
 #endregion
+
+//put this into a new script 
 
 #region New Classes
 public class Account

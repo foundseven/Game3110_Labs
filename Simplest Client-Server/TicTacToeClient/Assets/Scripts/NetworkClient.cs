@@ -213,7 +213,6 @@ public class NetworkClient : MonoBehaviour
                 {
                     ticTacToeManager.OnOpponentMove(row, col);
                     FindObjectOfType<TicTacToeManager>().CheckGameState();
-
                 }
                 else
                 {
